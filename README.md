@@ -6,13 +6,14 @@ A "die roll string" is a string that contains an expression that defines operati
 Examples
 ========
 
-String				Explanation
-------				-----------
-1d6					Roll a single six-sided die. This expression evaluates to the result of the roll.
-1d20+5				Roll a single twenty-sided die; add 5 to the rolled number and return.
-4d6					Roll four six-sided dice; add up the individual rolls and return the total.
-5d6-2d20+5			Roll five six-sided dice and add up the rolls; roll two twenty-sided dice, add up the two rolls, and subtract from 
-					the previous total; add 5 to the result; return.
+* 1d6
+ * Roll a single six-sided die. This expression evaluates to the result of the roll.
+* 1d20+5
+ * Roll a single twenty-sided die; add 5 to the rolled number and return.
+* 4d6
+ * Roll four six-sided dice; add up the individual rolls and return the total.
+* 5d6-2d20+5
+ * Roll five six-sided dice and add up the rolls; roll two twenty-sided dice, add up the two rolls, and subtract from the previous total; add 5 to the result; return.
 
 What Are Dice?
 ==============
