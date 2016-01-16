@@ -26,3 +26,5 @@ What's This For?
 ================
 
 The most common use is "dice bots" and "dice rollers", programs designed to simulate the rolling of physical dice. Such programs are often used when playing certain sorts of games, such as tabletop roleplaying games (https://en.wikipedia.org/wiki/Tabletop_role-playing_game) on the internet. Other uses exist as well.
+
+SA_Dice is copyright (c) 2016 Said Achmiz. It is licensed under the MIT license. See the file "LICENSE" for more information.
