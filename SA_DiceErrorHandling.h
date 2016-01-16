@@ -1,10 +1,10 @@
 //
 //  SA_DiceErrorHandling.h
-//  RPGBot
 //
-//  Created by Sandy Achmiz on 1/11/16.
+//	Copyright (c) 2016 Said Achmiz.
 //
-//
+//	This software is licensed under the MIT license.
+//	See the file "LICENSE" for more information.
 
 #ifndef SA_DiceErrorHandling_h
 #define SA_DiceErrorHandling_h

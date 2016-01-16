@@ -1,10 +1,10 @@
 //
 //  SA_DiceBot.m
-//  RPGBot
 //
-//  Created by Sandy Achmiz on 12/30/15.
+//	Copyright (c) 2016 Said Achmiz.
 //
-//
+//	This software is licensed under the MIT license.
+//	See the file "LICENSE" for more information.
 
 #import "SA_DiceBot.h"
 
