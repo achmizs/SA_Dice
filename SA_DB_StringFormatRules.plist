@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SA_DB_VALID_CHARACTERS</key>
+	<dict>
+		<key>SA_DB_VALID_NUMERAL_CHARACTERS</key>
+		<string>0123456789</string>
+		<key>SA_DB_VALID_OPERATOR_CHARACTERS</key>
+		<dict>
+			<key>SA_DB_OPERATOR_MINUS</key>
+			<string>-–−</string>
+			<key>SA_DB_OPERATOR_PLUS</key>
+			<string>+</string>
+			<key>SA_DB_OPERATOR_TIMES</key>
+			<string>*×⋅·</string>
+		</dict>
+		<key>SA_DB_VALID_ROLL_COMMAND_DELIMITER_CHARACTERS</key>
+		<string>dD</string>
+	</dict>
+	<key>SA_DB_CANONICAL_REPRESENTATIONS</key>
+	<dict>
+		<key>SA_DB_CANONICAL_OPERATOR_REPRESENTATIONS</key>
+		<dict>
+			<key>SA_DB_OPERATOR_MINUS</key>
+			<string>-</string>
+			<key>SA_DB_OPERATOR_PLUS</key>
+			<string>+</string>
+			<key>SA_DB_OPERATOR_TIMES</key>
+			<string>*</string>
+		</dict>
+		<key>SA_DB_CANONICAL_ROLL_COMMAND_DELIMITER_REPRESENTATION</key>
+		<string>d</string>
+	</dict>
+</dict>
+</plist>

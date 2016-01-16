@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SA_DB_ERROR_ROLL_STRING_EMPTY</key>
+	<string>Empty expression</string>
+	<key>SA_DB_ERROR_ROLL_STRING_HAS_ILLEGAL_CHARACTERS</key>
+	<string>Illegal characters detected</string>
+	<key>SA_DB_ERROR_UNKNOWN_ROLL_COMMAND</key>
+	<string>Unknown roll command</string>
+	<key>SA_DB_ERROR_DIE_COUNT_NEGATIVE</key>
+	<string>Die count negative</string>
+	<key>SA_DB_ERROR_DIE_COUNT_EXCESSIVE</key>
+	<string>Too many dice</string>
+	<key>SA_DB_ERROR_DIE_SIZE_INVALID</key>
+	<string>Invalid die size (zero or negative)</string>
+	<key>SA_DB_ERROR_DIE_SIZE_EXCESSIVE</key>
+	<string>Die size too big</string>
+	<key>SA_DB_ERROR_UNKNOWN_OPERATOR</key>
+	<string>Unknown operator</string>
+	<key>SA_DB_ERROR_INVALID_EXPRESSION</key>
+	<string>Invalid expression</string>
+	<key>SA_DB_ERROR_INTEGER_OVERFLOW_NEGATION</key>
+	<string>Integer overflow during negation</string>
+	<key>SA_DB_ERROR_INTEGER_OVERFLOW_ADDITION</key>
+	<string>Integer overflow during addition</string>
+	<key>SA_DB_ERROR_INTEGER_UNDERFLOW_ADDITION</key>
+	<string>Integer underflow during addition</string>
+	<key>SA_DB_ERROR_INTEGER_OVERFLOW_SUBTRACTION</key>
+	<string>Integer overflow during subtraction</string>
+	<key>SA_DB_ERROR_INTEGER_UNDERFLOW_SUBTRACTION</key>
+	<string>Integer underflow during subtraction</string>
+	<key>SA_DB_ERROR_INTEGER_OVERFLOW_MULTIPLICATION</key>
+	<string>Integer overflow during multiplication</string>
+	<key>SA_DB_ERROR_INTEGER_UNDERFLOW_MULTIPLICATION</key>
+	<string>Integer underflow during multiplication</string>
+</dict>
+</plist>
