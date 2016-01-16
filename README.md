@@ -20,7 +20,7 @@ What Are Dice?
 
 In real life, a die (https://en.wikipedia.org/wiki/Dice) is a small object, usually shaped as a regular polyhedron, on each face of which is inscribed some sort of symbol. When tossed on a flat surface, a die lands in such a way as to have one face facing up, and therefore showing one of the symbols. Dice are used in gambling, tabletop gaming, etc.
 
-The "digital" implementation of a die is a random number generator, configured (usually) to generate integers in a contiguous interval [1, n] (where n is the number of faces the die has), with a uniform distribution over the entire interval. (I say "usually" because some unusual sorts of dice exist, such as Fudge dice (https://en.wikipedia.org/wiki/Fudge_(role-playing_game_system)#Fudge_dice), but those are basically variations on the same theme.)
+The "digital" implementation of a die is a random number generator, configured (usually) to generate integers in a contiguous interval \[1, n\] (where n is the number of faces the die has), with a uniform distribution over the entire interval. (I say "usually" because some unusual sorts of dice exist, such as Fudge dice (https://en.wikipedia.org/wiki/Fudge_(role-playing_game_system)#Fudge_dice), but those are basically variations on the same theme.)
 
 What's This For?
 ================
