@@ -173,7 +173,7 @@ static NSDictionary *_stringFormatRules;
 	{
 		[formattedString appendFormat:@" = %@", expression[SA_DB_RESULT]];
 	}
-	else if(_legacyModeErrorReportingEnabled == YES && [getErrorsForExpression(expression) count] > 1)
+	else if(_legacyModeErrorReportingEnabled == YES && [getErrorsForExpression(expression) count] > 0)
 	{
 		if([getErrorsForExpression(expression) count] == 1)
 		{
@@ -187,7 +187,7 @@ static NSDictionary *_stringFormatRules;
 				[formattedString appendString:[SA_DiceFormatter descriptionForError:error]];
 				if(idx != [getErrorsForExpression(expression) count] - 1)
 				{
-					[formattedString appendFormat:@", "];
+					[formattedString appendFormat:@" / "];
 				}
 				else
 				{
