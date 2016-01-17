@@ -357,11 +357,7 @@ static NSDictionary *_validCharactersDict;
 {
 	NSString *stringFormatRulesPath = [[NSBundle bundleForClass:[self class]] pathForResource:SA_DB_STRING_FORMAT_RULES_PLIST_NAME ofType:@"plist"];
 	_validCharactersDict = [NSDictionary dictionaryWithContentsOfFile:stringFormatRulesPath][SA_DB_VALID_CHARACTERS];
-	if(_validCharactersDict)
-	{
-		NSLog(@"Valid characters dictionary loaded successfully.");
-	}
-	else
+	if(!_validCharactersDict)
 	{
 		NSLog(@"Could not load valid characters dictionary!");
 	}

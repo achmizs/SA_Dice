@@ -388,11 +388,7 @@ static NSDictionary *_stringFormatRules;
 {
 	NSString* errorDescriptionsPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"SA_DB_ErrorDescriptions" ofType:@"plist"];
 	_errorDescriptions = [NSDictionary dictionaryWithContentsOfFile:errorDescriptionsPath];
-	if(_errorDescriptions)
-	{
-		NSLog(@"Error descriptions loaded successfully.");
-	}
-	else
+	if(!_errorDescriptions)
 	{
 		NSLog(@"Could not load error descriptions!");
 	}
@@ -419,11 +415,7 @@ static NSDictionary *_stringFormatRules;
 {
 	NSString *stringFormatRulesPath = [[NSBundle bundleForClass:[self class]] pathForResource:SA_DB_STRING_FORMAT_RULES_PLIST_NAME ofType:@"plist"];
 	_stringFormatRules = [NSDictionary dictionaryWithContentsOfFile:stringFormatRulesPath];
-	if(_stringFormatRules)
-	{
-		NSLog(@"String format rules loaded successfully.");
-	}
-	else
+	if(!_stringFormatRules)
 	{
 		NSLog(@"Could not load string format rules!");
 	}
