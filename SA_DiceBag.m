@@ -45,7 +45,7 @@
 	NSMutableArray *rollsArray = [NSMutableArray arrayWithCapacity:numRolls];
 	for(unsigned long long i = 0; i < numRolls; i++)
 	{
-		rollsArray[i] = @((unsigned long long) arc4random_uniform((u_int32_t) dieSize) + 1);
+		[rollsArray addObject:@((unsigned long long) arc4random_uniform((u_int32_t) dieSize) + 1)];
 	}
 	
 	return rollsArray;
