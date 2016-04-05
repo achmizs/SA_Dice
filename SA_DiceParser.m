@@ -274,15 +274,15 @@ static NSDictionary *_validCharactersDict;
 	expression[SA_DB_OPERAND_LEFT] = [self legacyExpressionForLegalString:[dieRollString substringToIndex:operatorRange.location]];
 	expression[SA_DB_OPERAND_RIGHT] = [self legacyExpressionForLegalString:[dieRollString substringFromIndex:(operatorRange.location + operatorRange.length)]];
 	
-	// Check to see if the term is a subtraction operation.
-	if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_MINUS] containsCharactersInString:operator])
-	{
-		expression[SA_DB_OPERATOR] = SA_DB_OPERATOR_MINUS;
-	}
 	// Check to see if the term is an addition operation.
-	else if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_PLUS] containsCharactersInString:operator])
+	if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_PLUS] containsCharactersInString:operator])
 	{
 		expression[SA_DB_OPERATOR] = SA_DB_OPERATOR_PLUS;
+	}
+	// Check to see if the term is a subtraction operation.
+	else if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_MINUS] containsCharactersInString:operator])
+	{
+		expression[SA_DB_OPERATOR] = SA_DB_OPERATOR_MINUS;
 	}
 	// Check to see if the term is a multiplication operation.
 	else if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_TIMES] containsCharactersInString:operator])
