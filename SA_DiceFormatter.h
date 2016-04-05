@@ -153,4 +153,6 @@ typedef enum
 - (NSString *)stringFromExpression:(NSDictionary *)expression;
 - (NSAttributedString *)attributedStringFromExpression:(NSDictionary *)expression;
 
++ (NSString *)canonicalRepresentationForOperator:(NSString *)operatorName;
+
 @end

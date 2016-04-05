@@ -152,4 +152,6 @@ typedef enum
 
 - (NSDictionary *)expressionForString:(NSString *)dieRollString;
 
+- (NSDictionary *)expressionByJoiningExpression:(NSDictionary *)leftHandExpression toExpression:(NSDictionary *)rightHandExpression withOperator:(NSString *)operatorName;
+
 @end

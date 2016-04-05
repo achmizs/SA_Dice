@@ -35,9 +35,6 @@ extern NSString * const SA_DB_ERROR_ROLL_STRING_HAS_ILLEGAL_CHARACTERS;			// val
 // listed below.
 // Operation expressions also have a value for the SA_DB_OPERAND_RIGHT key,
 // and, possibly, a value for the SA_DB_OPERAND_LEFT key as well.
-// (An operation expression with an SA_DB_OPERATOR value of SA_DB_OPERATOR_MINUS 
-//  that does not have an SA_DB_OPERAND_LEFT value is simply a negation of the 
-//  SA_DB_OPERAND_RIGHT value.)
 // The values for the SA_DB_OPERAND_RIGHT (and, if present, SA_DB_OPERAND_LEFT)
 // are themselves expressions of some type (i.e. NSDictionary objects), which
 // must be recursively evaluated.
@@ -62,7 +59,6 @@ extern NSString * const SA_DB_ROLL_DIE_SIZE;									// key
 // Terms of type SA_DB_TERM_TYPE_VALUE (a.k.a. simple value expressions) have a 
 // value for the SA_DB_VALUE key, which is an NSNumber that represents an 
 // NSInteger value.
-// NOTE: Despite being an NSInteger, this numeric value may not be negative.
 extern NSString * const SA_DB_VALUE;											// key
 
 // All terms that were generated via parsing a string should have a value for 
@@ -113,10 +109,10 @@ extern NSString * const SA_DB_ROLLS;											// key
 extern NSString * const SA_DB_STRING_FORMAT_RULES_PLIST_NAME;
 
 /*
- The string format rules file (whose filename - minus the .plist extension - 
- is given by the SA_DB_STRING_FORMAT_RULES_PLIST_NAME string) contains 
- values for variables that define the properties of legal die roll strings,
- as well as certain variables that define the format of result strings.
+ The string format rules file (whose basename (i.e., filename minus the .plist
+ extension) is given by the SA_DB_STRING_FORMAT_RULES_PLIST_NAME string) 
+ contains values for variables that define the properties of legal die roll 
+ strings, as well as certain variables that define the format of result strings.
  
  The file is organized as a dictionary contaning several sub-dictionaries. The
  valid keys (those for which values are present in the file), and the values

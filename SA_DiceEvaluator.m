@@ -304,7 +304,7 @@
 		// No overflow will occur. We can perform the subtraction operation.
 		result[SA_DB_RESULT] = @(leftOperand - rightOperand);
 		
-		// Return the successfully evaluated negation expression.
+		// Return the successfully evaluated subtraction expression.
 		return result;
 	}
 	// Check to see if the operation is addition.
