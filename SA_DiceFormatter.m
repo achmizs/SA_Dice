@@ -197,7 +197,9 @@ static NSDictionary *_stringFormatRules;
 		}
 	}
 	
-	return formattedString;
+	// Make all instances of the minus sign be represented with the proper,
+	// canonical minus sign.
+	return [self rectifyMinusSignInString:formattedString];
 }
 
 - (NSString *)legacyStringFromIntermediaryExpression:(NSDictionary *)expression
@@ -377,12 +379,33 @@ static NSDictionary *_stringFormatRules;
 		[formattedString appendFormat:@"ERROR"];
 	}
 	
-	return formattedString;
+	// Make all instances of the minus sign be represented with the proper,
+	// canonical minus sign.
+	return [self rectifyMinusSignInString:formattedString];
 }
 
 /****************************/
 #pragma mark - Helper methods
 /****************************/
+
+- (NSString *)rectifyMinusSignInString:(NSString *)aString
+{
+	__block NSMutableString* sameStringButMutable = aString.mutableCopy;
+	NSLog(@"%@", sameStringButMutable);
+	
+	NSString *validMinusSignCharacters = [SA_DiceFormatter stringFormatRules][SA_DB_VALID_CHARACTERS][SA_DB_VALID_OPERATOR_CHARACTERS][SA_DB_OPERATOR_MINUS];
+	NSString *theRealMinusSign = [SA_DiceFormatter canonicalRepresentationForOperator:SA_DB_OPERATOR_MINUS];
+	
+	[validMinusSignCharacters enumerateSubstringsInRange:NSMakeRange(0, validMinusSignCharacters.length) 
+												 options:NSStringEnumerationByComposedCharacterSequences 
+											  usingBlock:^(NSString *character, NSRange characterRange, NSRange enclosingRange, BOOL *stop)
+	 {
+		 [sameStringButMutable replaceOccurrencesOfString:character withString:theRealMinusSign options:NSLiteralSearch range:NSMakeRange(0, sameStringButMutable.length)];
+	 }];
+	NSLog(@"%@", sameStringButMutable);
+	
+	return sameStringButMutable.copy;
+}
 
 + (void)loadErrorDescriptions
 {
