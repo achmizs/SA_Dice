@@ -4,14 +4,14 @@
 //	Copyright (c) 2016 Said Achmiz.
 //
 //	This software is licensed under the MIT license.
-//	See the file "LICENSE" for more information.
+//	See the file “LICENSE” for more information.
 
 #import "SA_DiceParser.h"
 
 #import "SA_DiceExpressionStringConstants.h"
-#import "SA_DiceErrorHandling.h"
-#import "NSString+SA_NSStringExtensions.h"
 #import "SA_DiceFormatter.h"
+
+#import "SA_Utility.h"
 
 /********************************/
 #pragma mark File-scope variables
@@ -24,8 +24,7 @@ static NSDictionary *_validCharactersDict;
 #pragma mark - SA_DiceParser class implementation
 /************************************************/
 
-@implementation SA_DiceParser
-{
+@implementation SA_DiceParser {
 	SA_DiceParserBehavior _parserBehavior;
 }
 
@@ -33,12 +32,10 @@ static NSDictionary *_validCharactersDict;
 #pragma mark - Properties
 /************************/
 
-- (void)setParserBehavior:(SA_DiceParserBehavior)newParserBehavior
-{
+-(void) setParserBehavior:(SA_DiceParserBehavior)newParserBehavior {
 	_parserBehavior = newParserBehavior;
 	
-	switch (_parserBehavior)
-	{
+	switch (_parserBehavior) {
 		case SA_DiceParserBehaviorLegacy:
 		case SA_DiceParserBehaviorModern:
 		case SA_DiceParserBehaviorFeepbot:
@@ -46,41 +43,33 @@ static NSDictionary *_validCharactersDict;
 			
 		case SA_DiceParserBehaviorDefault:
 		default:
-			_parserBehavior = [SA_DiceParser defaultParserBehavior];
+			_parserBehavior = SA_DiceParser.defaultParserBehavior;
 			break;
 	}
 }
 
-- (SA_DiceParserBehavior)parserBehavior
-{
+-(SA_DiceParserBehavior) parserBehavior {
 	return _parserBehavior;
 }
 
-/****************************************/
-#pragma mark - "Class property" accessors
-/****************************************/
+/******************************/
+#pragma mark - Class properties
+/******************************/
 
-+ (void)setDefaultParserBehavior:(SA_DiceParserBehavior)newDefaultParserBehavior
-{
-	if(newDefaultParserBehavior == SA_DiceParserBehaviorDefault)
-	{
++(void) setDefaultParserBehavior:(SA_DiceParserBehavior)newDefaultParserBehavior {
+	if (newDefaultParserBehavior == SA_DiceParserBehaviorDefault) {
 		_defaultParserBehavior = SA_DiceParserBehaviorLegacy;
-	}
-	else
-	{
+	} else {
 		_defaultParserBehavior = newDefaultParserBehavior;
 	}
 }
 
-+ (SA_DiceParserBehavior)defaultParserBehavior
-{
++(SA_DiceParserBehavior) defaultParserBehavior {
 	return _defaultParserBehavior;
 }
 
-+ (NSDictionary *)validCharactersDict
-{
-	if(_validCharactersDict == nil)
-	{
++(NSDictionary *) validCharactersDict {
+	if (_validCharactersDict == nil) {
 		[SA_DiceParser loadValidCharactersDict];
 	}
 	
@@ -91,32 +80,26 @@ static NSDictionary *_validCharactersDict;
 #pragma mark - Initializers & factory methods
 /********************************************/
 
-- (instancetype)init
-{
+-(instancetype) init {
 	return [self initWithBehavior:SA_DiceParserBehaviorDefault];
 }
 
-- (instancetype)initWithBehavior:(SA_DiceParserBehavior)parserBehavior
-{
-	if(self = [super init])
-	{
+-(instancetype) initWithBehavior:(SA_DiceParserBehavior)parserBehavior {
+	if (self = [super init]) {
 		self.parserBehavior = parserBehavior;
 		
-		if(_validCharactersDict == nil)
-		{
+		if (_validCharactersDict == nil) {
 			[SA_DiceParser loadValidCharactersDict];
 		}
 	}
 	return self;
 }
 
-+ (instancetype)defaultParser
-{
++(instancetype) defaultParser {
 	return [[SA_DiceParser alloc] initWithBehavior:SA_DiceParserBehaviorDefault];
 }
 
-+ (instancetype)parserWithBehavior:(SA_DiceParserBehavior)parserBehavior
-{
++(instancetype) parserWithBehavior:(SA_DiceParserBehavior)parserBehavior {
 	return [[SA_DiceParser alloc] initWithBehavior:parserBehavior];
 }
 
@@ -124,88 +107,77 @@ static NSDictionary *_validCharactersDict;
 #pragma mark - Public methods
 /****************************/
 
-- (NSDictionary *)expressionForString:(NSString *)dieRollString
-{
-	if(_parserBehavior == SA_DiceParserBehaviorLegacy)
-	{
+-(SA_DiceExpression *) expressionForString:(NSString *)dieRollString {
+	if (_parserBehavior == SA_DiceParserBehaviorLegacy) {
 		return [self legacyExpressionForString:dieRollString];
-	}
-	else
-	{
-		return @{};
+	} else {
+		return nil;
 	}
 }
 
-- (NSDictionary *)expressionByJoiningExpression:(NSDictionary *)leftHandExpression toExpression:(NSDictionary *)rightHandExpression withOperator:(NSString *)operatorName
-{
-	NSMutableDictionary *expression = [NSMutableDictionary dictionary];
+-(SA_DiceExpression *) expressionByJoiningExpression:(SA_DiceExpression *)leftHandExpression
+										toExpression:(SA_DiceExpression *)rightHandExpression
+										withOperator:(SA_DiceExpressionOperator)operator {
+	SA_DiceExpression *expression = [SA_DiceExpression new];
 	
 	// First, we check that the operands and operator are not nil. If they are,
 	// then the expression is invalid...
-	if(leftHandExpression == nil || rightHandExpression == nil || operatorName == nil)
-	{
-		expression[SA_DB_TERM_TYPE] = SA_DB_TERM_TYPE_NONE;
-		
-		addErrorToExpression(SA_DB_ERROR_INVALID_EXPRESSION, expression);
-		
+	if (leftHandExpression == nil ||
+		rightHandExpression == nil ||
+		operator == SA_DiceExpressionOperator_NONE) {
+		expression.type = SA_DiceExpressionTerm_NONE;
+		expression.errorBitMask |= SA_DiceExpressionError_INVALID_EXPRESSION;
 		return expression;
 	}
 	
 	// If the operands and operator are present, then the expression is an
 	// operation expression...
-	expression[SA_DB_TERM_TYPE] = SA_DB_TERM_TYPE_OPERATION;
+	expression.type = SA_DiceExpressionTerm_OPERATION;
 	
 	// ... but does it have a valid operator?
-	if([operatorName isEqualToString:SA_DB_OPERATOR_PLUS] ||
-	   [operatorName isEqualToString:SA_DB_OPERATOR_MINUS] ||
-	   [operatorName isEqualToString:SA_DB_OPERATOR_TIMES]
-	   )
-	{
-		expression[SA_DB_OPERATOR] = operatorName;
-	}
-	else
-	{
-		addErrorToExpression(SA_DB_ERROR_UNKNOWN_OPERATOR, expression);
-		
+	if (operator == SA_DiceExpressionOperator_MINUS ||
+		operator == SA_DiceExpressionOperator_PLUS ||
+		operator == SA_DiceExpressionOperator_TIMES) {
+		expression.operator = operator;
+	} else {
+		expression.errorBitMask |= SA_DiceExpressionError_UNKNOWN_OPERATOR;
 		return expression;
 	}
 	
 	// The operator is valid. Set the operands...
-	expression[SA_DB_OPERAND_LEFT] = leftHandExpression;
-	expression[SA_DB_OPERAND_RIGHT] = rightHandExpression;
-	
+	expression.leftOperand = leftHandExpression;
+	expression.rightOperand = rightHandExpression;
+
 	// And inherit any errors that they may have.
-	addErrorsFromExpressionToExpression(expression[SA_DB_OPERAND_LEFT], expression);
-	addErrorsFromExpressionToExpression(expression[SA_DB_OPERAND_RIGHT], expression);
-	
+	expression.errorBitMask |= expression.leftOperand.errorBitMask;
+	expression.errorBitMask |= expression.rightOperand.errorBitMask;
+
 	// Since this top-level expression was NOT generated by parsing an input
 	// string, for completeness and consistency, we have to generate a fake
 	// input string ourselves! We do this by wrapping each operand in
 	// parentheses and putting the canonical representation of the operator
 	// between them.
-	NSString *fakeInputString = [NSString stringWithFormat:@"(%@)%@(%@)",
-								 expression[SA_DB_OPERAND_LEFT][SA_DB_INPUT_STRING],
-								 [SA_DiceFormatter canonicalRepresentationForOperator:expression[SA_DB_OPERATOR]],
-								 expression[SA_DB_OPERAND_RIGHT][SA_DB_INPUT_STRING]];
-	expression[SA_DB_INPUT_STRING] = fakeInputString;
-	
+	expression.inputString = [NSString stringWithFormat:@"(%@)%@(%@)",
+							  expression.leftOperand.inputString,
+							  [SA_DiceFormatter canonicalRepresentationForOperator:expression.operator],
+							  expression.rightOperand.inputString];
+
 	// The joining is complete. (Power overwhelming.)
 	return expression;
 }
 
 /**********************************************/
-#pragma mark - "Legacy" behavior implementation
+#pragma mark - “Legacy” behavior implementation
 /**********************************************/
 
-- (NSDictionary *)legacyExpressionForString:(NSString *)dieRollString
-{
+-(SA_DiceExpression *) legacyExpressionForString:(NSString *)dieRollString {
 	// Check for forbidden characters.
-	NSCharacterSet *forbiddenCharacterSet = [[NSCharacterSet characterSetWithCharactersInString:[SA_DiceParser allValidCharacters]] invertedSet];
-	if([dieRollString containsCharactersInSet:forbiddenCharacterSet])
-	{
-		return @{ SA_DB_TERM_TYPE		: SA_DB_TERM_TYPE_NONE,
-				  SA_DB_INPUT_STRING	: dieRollString,
-				  SA_DB_ERRORS			: @[SA_DB_ERROR_ROLL_STRING_HAS_ILLEGAL_CHARACTERS] };
+	if ([dieRollString containsCharactersInSet:[[NSCharacterSet characterSetWithCharactersInString:[SA_DiceParser allValidCharacters]] invertedSet]]) {
+		SA_DiceExpression *errorExpression = [SA_DiceExpression new];
+		errorExpression.type = SA_DiceExpressionTerm_NONE;
+		errorExpression.inputString = dieRollString;
+		errorExpression.errorBitMask |= SA_DiceExpressionError_ROLL_STRING_HAS_ILLEGAL_CHARACTERS;
+		return errorExpression;
 	}
 	
 	// Since we have checked the entire string for forbidden characters, we can
@@ -217,14 +189,14 @@ static NSDictionary *_validCharactersDict;
 	return [self legacyExpressionForLegalString:dieRollString];
 }
 
-- (NSDictionary *)legacyExpressionForLegalString:(NSString *)dieRollString
-{
+-(SA_DiceExpression *) legacyExpressionForLegalString:(NSString *)dieRollString {
 	// Make sure string is not empty.
-	if(dieRollString.length == 0)
-	{
-		return @{ SA_DB_TERM_TYPE		: SA_DB_TERM_TYPE_NONE,
-				  SA_DB_INPUT_STRING	: dieRollString,
-				  SA_DB_ERRORS			: @[SA_DB_ERROR_ROLL_STRING_EMPTY] };
+	if (dieRollString.length == 0) {
+		SA_DiceExpression *errorExpression = [SA_DiceExpression new];
+		errorExpression.type = SA_DiceExpressionTerm_NONE;
+		errorExpression.inputString = dieRollString;
+		errorExpression.errorBitMask |= SA_DiceExpressionError_ROLL_STRING_EMPTY;
+		return errorExpression;
 	}
 	
 	// We now know the string describes one of the allowable expression types
@@ -233,85 +205,82 @@ static NSDictionary *_validCharactersDict;
 
 	// Check to see if the top-level term is an operation. Note that we parse
 	// operator expressions left-associatively.
-	NSRange lastOperatorRange = [dieRollString rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:[SA_DiceParser allValidOperatorCharacters]] options:NSBackwardsSearch];
-	if(lastOperatorRange.location != NSNotFound)
-	{
+	NSRange lastOperatorRange = [dieRollString rangeOfCharacterFromSet:[NSCharacterSet
+																		characterSetWithCharactersInString:[SA_DiceParser
+																											allValidOperatorCharacters]]
+															   options:NSBackwardsSearch];
+	if (lastOperatorRange.location != NSNotFound) {
 		NSString *operator = [dieRollString substringWithRange:lastOperatorRange];
 		
-		// If the last (and thus only) operator is the leading character of
-		// the expression, then this is one of several possible special cases.
-		if(lastOperatorRange.location == 0)
-		{
-			NSMutableDictionary *expression;
-			
+		if (lastOperatorRange.location != 0) {
+			return [self legacyExpressionForStringDescribingOperation:dieRollString
+												   withOperatorString:operator
+															  atRange:lastOperatorRange];
+		} else {
+			// If the last (and thus only) operator is the leading character of
+			// the expression, then this is one of several possible special cases.
 			// First, we check for whether there even is anything more to the
 			// roll string besides the operator. If not, then the string is
 			// malformed by definition...
-			if(dieRollString.length == lastOperatorRange.length)
-			{
-				expression = [NSMutableDictionary dictionary];
-				expression[SA_DB_TERM_TYPE] = SA_DB_TERM_TYPE_OPERATION;
-				expression[SA_DB_INPUT_STRING] = dieRollString;
-				
-				addErrorToExpression(SA_DB_ERROR_INVALID_EXPRESSION, expression);
-				
-				return expression;
-			}
-			
-			// If the last operator is the leading character (i.e. there's just
-			// one operator in the expression, and it's at the beginning), and
-			// there's more to the expression than just the operator, then
+			// If the last operator is the leading character (i.e. there’s just
+			// one operator in the expression, and it’s at the beginning), and
+			// there’s more to the expression than just the operator, then
 			// this is either an expression whose first term (which may or may
 			// not be its only term) is a simple value expression which
-			// represents a negative number - or, it's a malformed expression
+			// represents a negative number - or, it’s a malformed expression
 			// (because operators other than negation cannot begin an
 			// expression).
 			// In the former case, we do nothing, letting the testing for
 			// expression type fall through to the remaining cases (roll command
 			// or simple value).
 			// In the latter case, we register an error and return.
-			if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_MINUS] containsCharactersInString:operator])
-			{
-				// We've determined that this expression begins with a simple
-				// value expression that represents a negative number.
-				// This next line is a hack to account for the fact that Cocoa's
-				// Unicode compliance is incomplete. :( NSString's integerValue
-				// method only accepts the hyphen as a negation sign when reading a
-				// number - not any of the Unicode characters which officially
-				// symbolize negation! But we are more modern-minded, and accept
-				// arbitrary symbols as minus-sign. For proper parsing, though,
-				// we have to replace it like this...
-				dieRollString = [dieRollString stringByReplacingCharactersInRange:lastOperatorRange withString:@"-"];
-				
-				// Now we skip the remainder of the "is it an operator?" code
-				// and fall through to "is it a roll command, or maybe a simple
-				// value?"...
-			}
-			else
-			{
-				expression = [NSMutableDictionary dictionary];
-				expression[SA_DB_TERM_TYPE] = SA_DB_TERM_TYPE_OPERATION;
-				expression[SA_DB_INPUT_STRING] = dieRollString;
-				
-				addErrorToExpression(SA_DB_ERROR_INVALID_EXPRESSION, expression);
-				
+			if (dieRollString.length == lastOperatorRange.length ||
+				![[SA_DiceParser validCharactersForOperator:SA_DiceExpressionOperator_MINUS] containsCharactersInString:operator]) {
+				SA_DiceExpression *expression = [SA_DiceExpression new];
+
+				expression.type = SA_DiceExpressionTerm_OPERATION;
+				expression.inputString = dieRollString;
+				expression.errorBitMask |= SA_DiceExpressionError_INVALID_EXPRESSION;
 				return expression;
 			}
-		}
-		else
-		{
-			return [self legacyExpressionForStringDescribingOperation:dieRollString withOperator:operator atRange:lastOperatorRange];
+
+			// We’ve determined that this expression begins with a simple
+			// value expression that represents a negative number.
+			// This next line is a hack to account for the fact that Cocoa’s
+			// Unicode compliance is incomplete. :( NSString’s integerValue
+			// method only accepts the hyphen as a negation sign when reading a
+			// number - not any of the Unicode characters which officially
+			// symbolize negation! But we are more modern-minded, and accept
+			// arbitrary symbols as minus-sign. For proper parsing, though,
+			// we have to replace it like this...
+			dieRollString = [dieRollString stringByReplacingCharactersInRange:lastOperatorRange
+																   withString:@"-"];
+
+			// Now we fall through to “is it a roll command, or maybe a simple
+			// value?”...
 		}
 	}
 	
-	// If not an operation, the top-level term might be a die roll command.
-	// Look for one of the characters recognized as valid die roll delimiters. 
+	// If not an operation, the top-level term might be a die roll command
+	// or a die roll modifier.
+	// Look for one of the characters recognized as valid die roll or die roll
+	// modifier delimiters.
 	// Note that we parse roll commands left-associatively, therefore e.g. 
-	// 5d6d10 parses as "roll N d10s, where N is the result of rolling 5d6".
-	NSRange lastRollCommandDelimiterRange = [dieRollString rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:[SA_DiceParser validRollCommandDelimiterCharacters]] options:NSBackwardsSearch];
-	if(lastRollCommandDelimiterRange.location != NSNotFound)
-	{
-		return [self legacyExpressionForStringDescribingRollCommand:dieRollString withDelimiterAtRange:lastRollCommandDelimiterRange];
+	// 5d6d10 parses as “roll N d10s, where N is the result of rolling 5d6”.
+	NSMutableCharacterSet *validDelimiterCharacters = [NSMutableCharacterSet characterSetWithCharactersInString:[SA_DiceParser allValidRollCommandDelimiterCharacters]];
+	[validDelimiterCharacters addCharactersInString:[SA_DiceParser allValidRollModifierDelimiterCharacters]];
+	NSRange lastDelimiterRange = [dieRollString rangeOfCharacterFromSet:validDelimiterCharacters
+																options:NSBackwardsSearch];
+	if (lastDelimiterRange.location != NSNotFound) {
+		if ([[SA_DiceParser allValidRollCommandDelimiterCharacters] containsString:[dieRollString substringWithRange:lastDelimiterRange]])
+			return [self legacyExpressionForStringDescribingRollCommand:dieRollString
+												   withDelimiterAtRange:lastDelimiterRange];
+		else if ([[SA_DiceParser allValidRollModifierDelimiterCharacters] containsString:[dieRollString substringWithRange:lastDelimiterRange]])
+			return [self legacyExpressionForStringDescribingRollModifier:dieRollString
+													withDelimiterAtRange:lastDelimiterRange];
+		else
+			// This should be impossible.
+			NSLog(@"IMPOSSIBLE CONDITION ENCOUNTERED WHILE PARSING DIE ROLL STRING!");
 	}
 	
 	// If not an operation nor a roll command, the top-level term can only be
@@ -319,108 +288,155 @@ static NSDictionary *_validCharactersDict;
 	return [self legacyExpressionForStringDescribingNumericValue:dieRollString];
 }
 
-- (NSDictionary *)legacyExpressionForStringDescribingOperation:(NSString *)dieRollString withOperator:(NSString *)operator atRange:(NSRange)operatorRange
-{
-	NSMutableDictionary *expression;
-	
-	expression = [NSMutableDictionary dictionary];
-	expression[SA_DB_TERM_TYPE] = SA_DB_TERM_TYPE_OPERATION;
-	expression[SA_DB_INPUT_STRING] = dieRollString;
-	
+-(SA_DiceExpression *) legacyExpressionForStringDescribingOperation:(NSString *)dieRollString
+												 withOperatorString:(NSString *)operatorString
+															atRange:(NSRange)operatorRange {
+	SA_DiceExpression *expression = [SA_DiceExpression new];
+
+	expression.type = SA_DiceExpressionTerm_OPERATION;
+	expression.inputString = dieRollString;
+
 	// Operands of a binary operator are the expressions generated by 
 	// parsing the strings before and after the addition operator.
-	expression[SA_DB_OPERAND_LEFT] = [self legacyExpressionForLegalString:[dieRollString substringToIndex:operatorRange.location]];
-	expression[SA_DB_OPERAND_RIGHT] = [self legacyExpressionForLegalString:[dieRollString substringFromIndex:(operatorRange.location + operatorRange.length)]];
+	expression.leftOperand = [self legacyExpressionForLegalString:[dieRollString substringToIndex:operatorRange.location]];
+	expression.rightOperand = [self legacyExpressionForLegalString:[dieRollString substringFromIndex:(operatorRange.location + operatorRange.length)]];
 	
-	// Check to see if the term is an addition operation.
-	if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_PLUS] containsCharactersInString:operator])
-	{
-		expression[SA_DB_OPERATOR] = SA_DB_OPERATOR_PLUS;
-	}
-	// Check to see if the term is a subtraction operation.
-	else if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_MINUS] containsCharactersInString:operator])
-	{
-		expression[SA_DB_OPERATOR] = SA_DB_OPERATOR_MINUS;
-	}
-	// Check to see if the term is a multiplication operation.
-	else if([[SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_TIMES] containsCharactersInString:operator])
-	{
-		// Look for other, lower-precedence operators to the left of the 
+	if ([[SA_DiceParser validCharactersForOperator:SA_DiceExpressionOperator_PLUS] containsCharactersInString:operatorString]) {
+		// Check to see if the term is an addition operation.
+		expression.operator = SA_DiceExpressionOperator_PLUS;
+	} else if([[SA_DiceParser validCharactersForOperator:SA_DiceExpressionOperator_MINUS] containsCharactersInString:operatorString]) {
+		// Check to see if the term is a subtraction operation.
+		expression.operator = SA_DiceExpressionOperator_MINUS;
+	} else if([[SA_DiceParser validCharactersForOperator:SA_DiceExpressionOperator_TIMES] containsCharactersInString:operatorString]) {
+		// Check to see if the term is a multiplication operation.
+		// Look for other, lower-precedence operators to the left of the
 		// multiplication operator. If found, split the string there 
 		// instead of at the current operator.
-		NSString *allLowerPrecedenceOperators = [NSString stringWithFormat:@"%@%@", [SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_PLUS], [SA_DiceParser validCharactersForOperator:SA_DB_OPERATOR_MINUS]];
-		NSRange lastLowerPrecedenceOperatorRange = [dieRollString rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:allLowerPrecedenceOperators] options:NSBackwardsSearch range:NSMakeRange(1, operatorRange.location - 1)];
-		if(lastLowerPrecedenceOperatorRange.location != NSNotFound)
-		{
-			NSString *lowerPrecedenceOperator = [dieRollString substringWithRange:lastLowerPrecedenceOperatorRange];
-			return [self legacyExpressionForStringDescribingOperation:dieRollString withOperator:lowerPrecedenceOperator atRange:lastLowerPrecedenceOperatorRange];
+		NSString *allLowerPrecedenceOperators = [@[ [SA_DiceParser validCharactersForOperator:SA_DiceExpressionOperator_PLUS],
+													[SA_DiceParser validCharactersForOperator:SA_DiceExpressionOperator_MINUS] ]
+												 componentsJoinedByString:@""];
+		NSRange lastLowerPrecedenceOperatorRange = [dieRollString rangeOfCharacterFromSet:[NSCharacterSet
+																						   characterSetWithCharactersInString:allLowerPrecedenceOperators]
+																				  options:NSBackwardsSearch
+																					range:NSRangeMake(1, operatorRange.location - 1)];
+		if (lastLowerPrecedenceOperatorRange.location != NSNotFound) {
+			return [self legacyExpressionForStringDescribingOperation:dieRollString
+												   withOperatorString:[dieRollString substringWithRange:lastLowerPrecedenceOperatorRange]
+															  atRange:lastLowerPrecedenceOperatorRange];
 		}
 		
-		expression[SA_DB_OPERATOR] = SA_DB_OPERATOR_TIMES;
+		expression.operator = SA_DiceExpressionOperator_TIMES;
+	} else {
+		expression.errorBitMask |= SA_DiceExpressionError_UNKNOWN_OPERATOR;
 	}
-	else
-	{
-		addErrorToExpression(SA_DB_ERROR_UNKNOWN_OPERATOR, expression);
-	}
-	
+
 	// The operands have now been parsed recursively; this parsing may have 
 	// generated one or more errors. Inherit any error(s) from the 
 	// error-generating operand(s).
-	addErrorsFromExpressionToExpression(expression[SA_DB_OPERAND_RIGHT], expression);
-	addErrorsFromExpressionToExpression(expression[SA_DB_OPERAND_LEFT], expression);
-	
+	expression.errorBitMask |= expression.leftOperand.errorBitMask;
+	expression.errorBitMask |= expression.rightOperand.errorBitMask;
+
 	return expression;
 }
 
-- (NSDictionary *)legacyExpressionForStringDescribingRollCommand:(NSString *)dieRollString withDelimiterAtRange:(NSRange)delimiterRange
-{
-	NSMutableDictionary *expression = [NSMutableDictionary dictionary];
-	expression[SA_DB_TERM_TYPE] = SA_DB_TERM_TYPE_ROLL_COMMAND;
-	expression[SA_DB_INPUT_STRING] = dieRollString;
+-(SA_DiceExpression *) legacyExpressionForStringDescribingRollCommand:(NSString *)dieRollString
+												 withDelimiterAtRange:(NSRange)delimiterRange {
+	SA_DiceExpression *expression = [SA_DiceExpression new];
 
-	// For now, only one kind of roll command is supported - roll-and-sum.
-	// This rolls one or more dice of a given sort, and determines the sum of
-	// their rolled values.
+	expression.type = SA_DiceExpressionTerm_ROLL_COMMAND;
+	expression.inputString = dieRollString;
+
+	// For now, only two kinds of roll command is supported - roll-and-sum,
+	// and roll-and-sum with exploding dice.
+	// These roll one or more dice of a given sort, and determine the sum of
+	// their rolled values. (In the “exploding dice” version, each die can
+	// explode, of course.)
 	// In the future, support for other, more complex roll commands might be 
-	// added, such as "roll several and return the highest", exploding dice, 
-	// etc.
-	expression[SA_DB_ROLL_COMMAND] = SA_DB_ROLL_COMMAND_SUM;
-	
+	// added, such as “roll several and return the highest”.
+	if ([[SA_DiceParser validCharactersForRollCommandDelimiter:SA_DiceExpressionRollCommand_SUM]
+		 containsString:[dieRollString substringWithRange:delimiterRange]])
+		expression.rollCommand = SA_DiceExpressionRollCommand_SUM;
+	else if ([[SA_DiceParser validCharactersForRollCommandDelimiter:SA_DiceExpressionRollCommand_SUM_EXPLODING]
+			  containsString:[dieRollString substringWithRange:delimiterRange]])
+		expression.rollCommand = SA_DiceExpressionRollCommand_SUM_EXPLODING;
+
 	// Check to see if the delimiter is the initial character of the roll 
 	// string. If so (i.e. if the die count is omitted), we assume it to be 1
-	// (i.e. 'd6' is read as '1d6').
-	if(delimiterRange.location == 0)
-	{
-		expression[SA_DB_ROLL_DIE_COUNT] = [self legacyExpressionForStringDescribingNumericValue:@"1"];
-	}
-	else
-	{
-		// The die count is the expression generated by parsing the string 
-		// before the delimiter.
-		expression[SA_DB_ROLL_DIE_COUNT] = [self legacyExpressionForLegalString:[dieRollString substringToIndex:delimiterRange.location]];
-	}
+	// (i.e. ‘d6’ is read as ‘1d6’).
+	// Otherwise, the die count is the expression generated by parsing the
+	// string before the delimiter.
+	expression.dieCount = ((delimiterRange.location == 0) ?
+						   [self legacyExpressionForStringDescribingNumericValue:@"1"] :
+						   [self legacyExpressionForLegalString:[dieRollString substringToIndex:delimiterRange.location]]);
 
 	// The die size is the expression generated by parsing the string after the 
 	// delimiter.
-	expression[SA_DB_ROLL_DIE_SIZE] = [self legacyExpressionForLegalString:[dieRollString substringFromIndex:(delimiterRange.location + delimiterRange.length)]];
+	expression.dieSize = [self legacyExpressionForLegalString:[dieRollString substringFromIndex:(delimiterRange.location + delimiterRange.length)]];
+	if ([expression.dieSize.inputString.lowercaseString isEqualToString:@"f"])
+		expression.dieType = SA_DiceExpressionDice_FUDGE;
 
 	// The die count and die size have now been parsed recursively; this parsing
 	// may have generated one or more errors. Inherit any error(s) from the 
 	// error-generating sub-terms.
-	addErrorsFromExpressionToExpression(expression[SA_DB_ROLL_DIE_COUNT], expression);
-	addErrorsFromExpressionToExpression(expression[SA_DB_ROLL_DIE_SIZE], expression);
-	
+	expression.errorBitMask |= expression.dieCount.errorBitMask;
+	expression.errorBitMask |= expression.dieSize.errorBitMask;
+
 	return expression;
 }
 
-- (NSDictionary *)legacyExpressionForStringDescribingNumericValue:(NSString *)dieRollString
-{
-	NSMutableDictionary *expression = [NSMutableDictionary dictionary];
-	expression[SA_DB_TERM_TYPE] = SA_DB_TERM_TYPE_VALUE;
-	expression[SA_DB_INPUT_STRING] = dieRollString;
-	
-	expression[SA_DB_VALUE] = @(dieRollString.integerValue);
-	
+-(SA_DiceExpression *) legacyExpressionForStringDescribingRollModifier:(NSString *)dieRollString
+												  withDelimiterAtRange:(NSRange)delimiterRange {
+	SA_DiceExpression *expression = [SA_DiceExpression new];
+
+	expression.type = SA_DiceExpressionTerm_ROLL_MODIFIER;
+	expression.inputString = dieRollString;
+
+	// The possible roll modifiers are KEEP HIGHEST and KEEP LOWEST.
+	// These take a roll command and a number, and keep that number of rolls
+	// generated by the roll command (either the highest or lowest rolls,
+	// respectively).
+	if ([[SA_DiceParser validCharactersForRollModifierDelimiter:SA_DiceExpressionRollModifier_KEEP_HIGHEST]
+		 containsString:[dieRollString substringWithRange:delimiterRange]])
+		expression.rollModifier = SA_DiceExpressionRollModifier_KEEP_HIGHEST;
+	else if ([[SA_DiceParser validCharactersForRollModifierDelimiter:SA_DiceExpressionRollModifier_KEEP_LOWEST]
+			  containsString:[dieRollString substringWithRange:delimiterRange]])
+		expression.rollModifier = SA_DiceExpressionRollModifier_KEEP_LOWEST;
+
+	// Check to see if the delimiter is the initial character of the roll
+	// string. If so, set an error, because a roll modifier requires a
+	// roll command to modify.
+	if (delimiterRange.location == 0) {
+		expression.errorBitMask |= SA_DiceExpressionError_ROLL_STRING_EMPTY;
+		return expression;
+	}
+
+	// Otherwise, the left operand is the expression generated by parsing the
+	// string before the delimiter.
+	expression.leftOperand = [self legacyExpressionForLegalString:[dieRollString substringToIndex:delimiterRange.location]];
+
+	// The right operand is the expression generated by parsing the string after
+	// the delimiter.
+	expression.rightOperand = [self legacyExpressionForLegalString:[dieRollString substringFromIndex:(delimiterRange.location + delimiterRange.length)]];
+
+	// The left and right operands have now been parsed recursively; this
+	// parsing may have generated one or more errors. Inherit any error(s) from
+	// the error-generating sub-terms.
+	expression.errorBitMask |= expression.leftOperand.errorBitMask;
+	expression.errorBitMask |= expression.rightOperand.errorBitMask;
+
+	return expression;
+}
+
+-(SA_DiceExpression *) legacyExpressionForStringDescribingNumericValue:(NSString *)dieRollString {
+	SA_DiceExpression *expression = [SA_DiceExpression new];
+
+	expression.type = SA_DiceExpressionTerm_VALUE;
+	expression.inputString = dieRollString;
+	if ([expression.inputString.lowercaseString isEqualToString:@"f"])
+		expression.value = @(-1);
+	else
+		expression.value = @(dieRollString.integerValue);
+
 	return expression;
 }
 
@@ -428,57 +444,54 @@ static NSDictionary *_validCharactersDict;
 #pragma mark - Helper methods
 /****************************/
 
-+ (void)loadValidCharactersDict
-{
-	NSString *stringFormatRulesPath = [[NSBundle bundleForClass:[self class]] pathForResource:SA_DB_STRING_FORMAT_RULES_PLIST_NAME ofType:@"plist"];
++(void) loadValidCharactersDict {
+	NSString *stringFormatRulesPath = [[NSBundle bundleForClass:[self class]] pathForResource:SA_DB_STRING_FORMAT_RULES_PLIST_NAME
+																					   ofType:@"plist"];
 	_validCharactersDict = [NSDictionary dictionaryWithContentsOfFile:stringFormatRulesPath][SA_DB_VALID_CHARACTERS];
-	if(!_validCharactersDict)
-	{
+	if (!_validCharactersDict) {
 		NSLog(@"Could not load valid characters dictionary!");
 	}
 }
 
-+ (NSString *)allValidCharacters
-{
-	NSMutableString *validCharactersString = [NSMutableString string];
-	
-	[validCharactersString appendString:[SA_DiceParser validNumeralCharacters]];
-	[validCharactersString appendString:[SA_DiceParser validRollCommandDelimiterCharacters]];
-	[validCharactersString appendString:[SA_DiceParser allValidOperatorCharacters]];
-	
-	return validCharactersString;
++(NSString *) allValidCharacters {
+	return [ @[ [SA_DiceParser validNumeralCharacters], 
+				[SA_DiceParser allValidRollCommandDelimiterCharacters],
+				[SA_DiceParser allValidRollModifierDelimiterCharacters],
+				[SA_DiceParser allValidOperatorCharacters] ] componentsJoinedByString:@""];
 }
 
-+ (NSString *)allValidOperatorCharacters
-{
-	NSDictionary *validCharactersDict = [SA_DiceParser validCharactersDict];
-		
-	__block NSMutableString *validOperatorCharactersString = [NSMutableString string];
++(NSString *) allValidOperatorCharacters {
+	NSDictionary *validOperatorCharactersDict = [SA_DiceParser validCharactersDict][SA_DB_VALID_OPERATOR_CHARACTERS];
 	
-	[validCharactersDict[SA_DB_VALID_OPERATOR_CHARACTERS] enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSString *value, BOOL *stop) {
-		[validOperatorCharactersString appendString:value];
-	}];
-	
-	return validOperatorCharactersString;
+	return [validOperatorCharactersDict.allValues componentsJoinedByString:@""];
 }
 
-+ (NSString *)validCharactersForOperator:(NSString *)operatorName
-{
-	return [SA_DiceParser validCharactersDict][SA_DB_VALID_OPERATOR_CHARACTERS][operatorName];
++(NSString *) validCharactersForOperator:(SA_DiceExpressionOperator)operator {
+	return [SA_DiceParser validCharactersDict][SA_DB_VALID_OPERATOR_CHARACTERS][NSStringFromSA_DiceExpressionOperator(operator)];
 }
 
-+ (NSString *)validNumeralCharacters
-{
-	NSDictionary *validCharactersDict = [SA_DiceParser validCharactersDict];
-	
-	return validCharactersDict[SA_DB_VALID_NUMERAL_CHARACTERS];
++(NSString *) validNumeralCharacters {
+	return [SA_DiceParser validCharactersDict][SA_DB_VALID_NUMERAL_CHARACTERS];
 }
 
-+ (NSString *)validRollCommandDelimiterCharacters
-{
-	NSDictionary *validCharactersDict = [SA_DiceParser validCharactersDict];
++(NSString *) validCharactersForRollCommandDelimiter:(SA_DiceExpressionRollCommand)command {
+	return [SA_DiceParser validCharactersDict][SA_DB_VALID_ROLL_COMMAND_DELIMITER_CHARACTERS][NSStringFromSA_DiceExpressionRollCommand(command)];
+}
 
-	return validCharactersDict[SA_DB_VALID_ROLL_COMMAND_DELIMITER_CHARACTERS];
++(NSString *) allValidRollCommandDelimiterCharacters {
+	NSDictionary *validRollCommandDelimiterCharactersDict = [SA_DiceParser validCharactersDict][SA_DB_VALID_ROLL_COMMAND_DELIMITER_CHARACTERS];
+
+	return [validRollCommandDelimiterCharactersDict.allValues componentsJoinedByString:@""];
+}
+
++(NSString *) validCharactersForRollModifierDelimiter:(SA_DiceExpressionRollModifier)modifier {
+	return [SA_DiceParser validCharactersDict][SA_DB_VALID_ROLL_MODIFIER_DELIMITER_CHARACTERS][NSStringFromSA_DiceExpressionRollModifier(modifier)];
+}
+
++(NSString *) allValidRollModifierDelimiterCharacters {
+	NSDictionary *validRollModifierDelimiterCharactersDict = [SA_DiceParser validCharactersDict][SA_DB_VALID_ROLL_MODIFIER_DELIMITER_CHARACTERS];
+
+	return [validRollModifierDelimiterCharactersDict.allValues componentsJoinedByString:@""];
 }
 
 @end

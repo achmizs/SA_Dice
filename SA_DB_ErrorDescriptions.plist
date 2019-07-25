@@ -8,6 +8,10 @@
 	<string>Illegal characters detected</string>
 	<key>SA_DB_ERROR_UNKNOWN_ROLL_COMMAND</key>
 	<string>Unknown roll command</string>
+	<key>SA_DB_ERROR_ROLL_MODIFIER_INAPPLICABLE</key>
+	<string>Roll modifier cannot be applied</string>
+	<key>SA_DB_ERROR_UNKNOWN_ROLL_MODIFIER</key>
+	<string>Unknown roll modifier</string>
 	<key>SA_DB_ERROR_DIE_COUNT_NEGATIVE</key>
 	<string>Die count negative</string>
 	<key>SA_DB_ERROR_DIE_COUNT_EXCESSIVE</key>
@@ -34,5 +38,9 @@
 	<string>Integer overflow during multiplication</string>
 	<key>SA_DB_ERROR_INTEGER_UNDERFLOW_MULTIPLICATION</key>
 	<string>Integer underflow during multiplication</string>
+	<key>SA_DB_ERROR_KEEP_COUNT_EXCEEDS_ROLL_COUNT</key>
+	<string>Can’t keep more rolls than were made</string>
+	<key>SA_DB_ERROR_KEEP_COUNT_NEGATIVE</key>
+	<string>Can’t keep a negative number of rolls</string>
 </dict>
 </plist>

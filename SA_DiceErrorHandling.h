@@ -6,13 +6,16 @@
 //	This software is licensed under the MIT license.
 //	See the file "LICENSE" for more information.
 
-#ifndef SA_DiceErrorHandling_h
-#define SA_DiceErrorHandling_h
-
 #import <Foundation/Foundation.h>
 
-void addErrorToExpression (NSString *error, NSMutableDictionary *expression);
-void addErrorsFromExpressionToExpression (NSDictionary *sourceExpression, NSMutableDictionary *targetExpression);
-NSArray <NSString *> *getErrorsForExpression (NSDictionary *expression);
+@interface SA_DiceErrorHandler : NSObject
 
-#endif /* SA_DiceErrorHandling_h */
++(void) addError:(NSString *)error
+	toExpression:(NSMutableDictionary *)expression;
+
++(void) addErrorsFromExpression:(NSDictionary *)sourceExpression
+				   toExpression:(NSMutableDictionary *)targetExpression;
+
++(NSArray <NSString *> *) errorsForExpression:(NSDictionary *)expression;
+
+@end

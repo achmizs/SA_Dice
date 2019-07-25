@@ -8,6 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
+typedef NS_OPTIONS(NSUInteger, SA_DiceRollingOptions) {
+	SA_DiceRollingExplodingDice = 1 << 1
+};
+
 /****************************************/
 #pragma mark SA_DiceBag class declaration
 /****************************************/
@@ -18,9 +22,27 @@
 #pragma mark - Public methods
 /****************************/
 
-- (unsigned long long)biggestPossibleDieSize;
+-(NSUInteger) biggestPossibleDieSize;
 
-- (unsigned long long)rollDie:(unsigned long long)die;
-- (NSArray *)rollNumber:(NSNumber *)number ofDice:(unsigned long long)die;
+// -------------
+// Regular dice.
+// -------------
+
+-(NSUInteger) rollDie:(NSUInteger)dieSize;
+
+-(NSArray <NSNumber *> *) rollNumber:(NSUInteger)number
+							  ofDice:(NSUInteger)dieSize;
+
+-(NSArray <NSNumber *> *) rollNumber:(NSUInteger)number
+							  ofDice:(NSUInteger)dieSize
+						 withOptions:(SA_DiceRollingOptions)options;
+
+// -----------
+// Fudge dice.
+// -----------
+
+-(char) rollFudgeDie;
+
+-(NSArray <NSNumber *> *) rollFudgeDice:(NSUInteger)number;
 
 @end

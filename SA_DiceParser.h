@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import "SA_DiceExpression.h"
+
 /*********************/
 #pragma mark Constants
 /*********************/
@@ -28,7 +30,7 @@
  formatter behaviors, each of which supports one or more parser modes. Using the
  wrong formatter behavior mode for an expression tree (that is, passing an 
  SA_DiceFormatter instance an expression tree that was was generated 
- by a parser mode that is not supported by the formatter's currently set 
+ by a parser mode that is not supported by the formatter’s currently set
  formatter behavior mode) results in undefined behavior.
  
  See SA_DiceFormatter.h for a list of which formatter behavior modes are 
@@ -43,9 +45,9 @@
  ==== DEFAULT mode ====
  ======================
  
- "Default" mode is an alias for whatever default behavior is currently set for 
- new SA_DiceParser instances. (The "default default" behavior for the current 
- implementation is "legacy".)
+ “Default” mode is an alias for whatever default behavior is currently set for
+ new SA_DiceParser instances. (The “default default” behavior for the current
+ implementation is “legacy”.)
  
  =====================
  ==== LEGACY mode ====
@@ -65,7 +67,7 @@
  Normal operator precedence and behavior (commutativity, associativity) apply.
 
  2. Simple roll-and-sum. Roll X dice, each with Y sides, and take the sum of
- the rolled values, by inputting 'XdY' where X is a nonnegative integer and Y 
+ the rolled values, by inputting ‘XdY’ where X is a nonnegative integer and Y
  is a positive integer, e.g.:
  
  1d20
@@ -73,7 +75,7 @@
  8d27
  
  3. Left-associative recursive roll-and-sum. Roll X dice, each with Y sides, 
- and take the sum of the rolled values, by inputting 'XdY', where Y is a 
+ and take the sum of the rolled values, by inputting ‘XdY’, where Y is a
  positive integer and X may be a nonnegative integer or a recursive roll-and-sum
  expression, e.g.:
  
@@ -89,7 +91,7 @@
  5d6d10-2*3
  5+3-2*4d6+2d10d3-20+5d4*2
  
- NOTE: The 'd' operator takes precedence over arithmetic operators. (Legacy 
+ NOTE: The ‘d’ operator takes precedence over arithmetic operators. (Legacy
  mode does not support parentheses.)
  
  NOTE 2: Legacy mode does not support whitespace within roll strings.
@@ -110,13 +112,12 @@
  
  Feepbot mode emulates feepbot by feep.
  */
-typedef enum
-{
+typedef NS_ENUM(NSUInteger, SA_DiceParserBehavior) {
 	SA_DiceParserBehaviorDefault	=	    0,
 	SA_DiceParserBehaviorLegacy		=	 1337,
 	SA_DiceParserBehaviorModern		=	 2001,
-	SA_DiceParserBehaviorFeepbot	=	65516
-} SA_DiceParserBehavior;
+	SA_DiceParserBehaviorFeepbot	=	65536
+};
 
 /*********************************************/
 #pragma mark - SA_DiceParser class declaration
@@ -130,28 +131,29 @@ typedef enum
 
 @property SA_DiceParserBehavior parserBehavior;
 
-/****************************************/
-#pragma mark - "Class property" accessors
-/****************************************/
+/******************************/
+#pragma mark - Class properties
+/******************************/
 
-+ (void)setDefaultParserBehavior:(SA_DiceParserBehavior)defaultParserBehavior;
-+ (SA_DiceParserBehavior)defaultParserBehavior;
+@property (class) SA_DiceParserBehavior defaultParserBehavior;
 
 /********************************************/
 #pragma mark - Initializers & factory methods
 /********************************************/
 
-- (instancetype)init;
-- (instancetype)initWithBehavior:(SA_DiceParserBehavior)parserBehavior NS_DESIGNATED_INITIALIZER;
-+ (instancetype)defaultParser;
-+ (instancetype)parserWithBehavior:(SA_DiceParserBehavior)parserBehavior;
+-(instancetype) init;
+-(instancetype) initWithBehavior:(SA_DiceParserBehavior)parserBehavior NS_DESIGNATED_INITIALIZER;
++(instancetype) defaultParser;
++(instancetype) parserWithBehavior:(SA_DiceParserBehavior)parserBehavior;
 
 /****************************/
 #pragma mark - Public methods
 /****************************/
 
-- (NSDictionary *)expressionForString:(NSString *)dieRollString;
+-(SA_DiceExpression *) expressionForString:(NSString *)dieRollString;
 
-- (NSDictionary *)expressionByJoiningExpression:(NSDictionary *)leftHandExpression toExpression:(NSDictionary *)rightHandExpression withOperator:(NSString *)operatorName;
+-(SA_DiceExpression *) expressionByJoiningExpression:(SA_DiceExpression *)leftHandExpression
+										toExpression:(SA_DiceExpression *)rightHandExpression
+										withOperator:(SA_DiceExpressionOperator)operator;
 
 @end

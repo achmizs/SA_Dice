@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import "SA_DiceExpression.h"
+
 /*********************/
 #pragma mark Constants
 /*********************/
@@ -35,9 +37,9 @@
  ==== DEFAULT mode ====
  ======================
  
- "Default" mode is an alias for whatever default behavior is currently set for 
- new SA_DiceFormatter instances. (The "default default" behavior for the 
- current implementation is "legacy".)
+ “Default” mode is an alias for whatever default behavior is currently set for
+ new SA_DiceFormatter instances. (The “default default” behavior for the
+ current implementation is “legacy”.)
  
  =====================
  ==== LEGACY mode ====
@@ -76,7 +78,7 @@
  =====================
  
  Simple mode generates a very minimal output format. It prints the final result 
- of a die roll expression, or the word 'ERROR' if any error occurred. It also
+ of a die roll expression, or the word ‘ERROR’ if any error occurred. It also
  prints the label (if any).
  
  SUPPORTED PARSER MODES: Feepbot, Legacy.
@@ -103,14 +105,13 @@
  
  SUPPORTED PARSER MODES: Feepbot, Legacy.
  */
-typedef enum
-{
+typedef NS_ENUM(unsigned int, SA_DiceFormatterBehavior) {
 	SA_DiceFormatterBehaviorDefault	=	    0,
 	SA_DiceFormatterBehaviorSimple	=	    1,
 	SA_DiceFormatterBehaviorLegacy	=	 1337,
 	SA_DiceFormatterBehaviorModern	=	 2001,
-	SA_DiceFormatterBehaviorFeepbot	=	65516
-} SA_DiceFormatterBehavior;
+	SA_DiceFormatterBehaviorFeepbot	=	65536
+};
 
 /************************************************/
 #pragma mark - SA_DiceFormatter class declaration
@@ -125,34 +126,34 @@ typedef enum
 @property SA_DiceFormatterBehavior formatterBehavior;
 
 /*************************************************/
-#pragma mark - Properties ("legacy" behavior mode)
+#pragma mark - Properties (“legacy” behavior mode)
 /*************************************************/
 
 @property BOOL legacyModeErrorReportingEnabled;
 
-/****************************************/
-#pragma mark - "Class property" accessors
-/****************************************/
+/******************************/
+#pragma mark - Class properties
+/******************************/
 
-+ (void)setDefaultFormatterBehavior:(SA_DiceFormatterBehavior)defaultFormatterBehavior;
-+ (SA_DiceFormatterBehavior)defaultFormatterBehavior;
+@property (class) SA_DiceFormatterBehavior defaultFormatterBehavior;
 
 /********************************************/
 #pragma mark - Initializers & factory methods
 /********************************************/
 
-- (instancetype)init;
-- (instancetype)initWithBehavior:(SA_DiceFormatterBehavior)formatterBehavior NS_DESIGNATED_INITIALIZER;
-+ (instancetype)defaultFormatter;
-+ (instancetype)formatterWithBehavior:(SA_DiceFormatterBehavior)formatterBehavior;
+-(instancetype) init;
+-(instancetype) initWithBehavior:(SA_DiceFormatterBehavior)formatterBehavior NS_DESIGNATED_INITIALIZER;
++(instancetype) defaultFormatter;
++(instancetype) formatterWithBehavior:(SA_DiceFormatterBehavior)formatterBehavior;
 
 /****************************/
 #pragma mark - Public methods
 /****************************/
 
-- (NSString *)stringFromExpression:(NSDictionary *)expression;
-- (NSAttributedString *)attributedStringFromExpression:(NSDictionary *)expression;
+-(NSString *) stringFromExpression:(SA_DiceExpression *)expression;
+-(NSAttributedString *) attributedStringFromExpression:(SA_DiceExpression *)expression;
 
-+ (NSString *)canonicalRepresentationForOperator:(NSString *)operatorName;
++(NSString *) rectifyMinusSignInString:(NSString *)aString;
++(NSString *) canonicalRepresentationForOperator:(SA_DiceExpressionOperator)operator;
 
 @end

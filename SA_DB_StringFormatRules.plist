@@ -5,7 +5,7 @@
 	<key>SA_DB_VALID_CHARACTERS</key>
 	<dict>
 		<key>SA_DB_VALID_NUMERAL_CHARACTERS</key>
-		<string>0123456789</string>
+		<string>0123456789fF</string>
 		<key>SA_DB_VALID_OPERATOR_CHARACTERS</key>
 		<dict>
 			<key>SA_DB_OPERATOR_MINUS</key>
@@ -16,21 +16,45 @@
 			<string>*×⋅·</string>
 		</dict>
 		<key>SA_DB_VALID_ROLL_COMMAND_DELIMITER_CHARACTERS</key>
-		<string>dD</string>
+		<dict>
+			<key>SA_DB_ROLL_COMMAND_SUM</key>
+			<string>dD</string>
+			<key>SA_DB_ROLL_COMMAND_SUM_EXPLODING</key>
+			<string>eE</string>
+		</dict>
+		<key>SA_DB_VALID_ROLL_MODIFIER_DELIMITER_CHARACTERS</key>
+		<dict>
+			<key>SA_DB_ROLL_MODIFIER_KEEP_HIGHEST</key>
+			<string>kK</string>
+			<key>SA_DB_ROLL_MODIFIER_KEEP_LOWEST</key>
+			<string>lL</string>
+		</dict>
 	</dict>
 	<key>SA_DB_CANONICAL_REPRESENTATIONS</key>
 	<dict>
 		<key>SA_DB_CANONICAL_OPERATOR_REPRESENTATIONS</key>
 		<dict>
 			<key>SA_DB_OPERATOR_MINUS</key>
-			<string>−</string>
+			<string>-</string>
 			<key>SA_DB_OPERATOR_PLUS</key>
 			<string>+</string>
 			<key>SA_DB_OPERATOR_TIMES</key>
-			<string>×</string>
+			<string>*</string>
 		</dict>
-		<key>SA_DB_CANONICAL_ROLL_COMMAND_DELIMITER_REPRESENTATION</key>
-		<string>d</string>
+		<key>SA_DB_CANONICAL_ROLL_COMMAND_DELIMITER_REPRESENTATIONS</key>
+		<dict>
+			<key>SA_DB_ROLL_COMMAND_SUM</key>
+			<string>d</string>
+			<key>SA_DB_ROLL_COMMAND_SUM_EXPLODING</key>
+			<string>e</string>
+		</dict>
+		<key>SA_DB_CANONICAL_ROLL_MODIFIER_DELIMITER_REPRESENTATIONS</key>
+		<dict>
+			<key>SA_DB_ROLL_MODIFIER_KEEP_HIGHEST</key>
+			<string>k</string>
+			<key>SA_DB_ROLL_MODIFIER_KEEP_LOWEST</key>
+			<string>l</string>
+		</dict>
 	</dict>
 </dict>
 </plist>

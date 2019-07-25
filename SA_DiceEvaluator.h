@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @class SA_DiceBag;
+@class SA_DiceExpression;
 
 /************************************************/
 #pragma mark SA_DiceEvaluator class declaration
@@ -20,15 +21,13 @@
 #pragma mark - Properties
 /************************/
 
-@property NSInteger maxDieCount;
-@property NSInteger maxDieSize;
-
-@property (strong) SA_DiceBag *diceBag;
+@property NSUInteger maxDieCount;
+@property NSUInteger maxDieSize;
 
 /****************************/
 #pragma mark - Public methods
 /****************************/
 
-- (NSMutableDictionary *)resultOfExpression:(NSDictionary *)expression;
+-(SA_DiceExpression *) resultOfExpression:(SA_DiceExpression *)expression;
 
 @end

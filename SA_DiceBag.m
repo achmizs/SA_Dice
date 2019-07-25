@@ -7,48 +7,91 @@
 //	See the file "LICENSE" for more information.
 
 #import "SA_DiceBag.h"
+#import <GameplayKit/GameplayKit.h>
 
 /*******************************************/
 #pragma mark SA_DiceBag class implementation
 /*******************************************/
 
-@implementation SA_DiceBag
+@implementation SA_DiceBag {
+	GKRandomSource *_randomSource;
+
+//	NSMutableDictionary <NSNumber *, GKRandomDistribution *> *_dice;
+}
+
+-(instancetype) init {
+	self = [super init];
+	if (!self) return nil;
+
+	_randomSource = [GKMersenneTwisterRandomSource new];
+
+//	_dice = [NSMutableDictionary dictionary];
+
+	return self;
+}
 
 /****************************/
 #pragma mark - Public methods
 /****************************/
 
-- (unsigned long long)biggestPossibleDieSize
-{
-	return UINT32_MAX;
+-(NSUInteger) biggestPossibleDieSize {
+	return NSUIntegerMax;
 }
 
-- (unsigned long long)rollDie:(unsigned long long)dieSize
-{
-	if(dieSize > UINT32_MAX)
-	{
-		return -1;
-	}
-
-	return (unsigned long long) arc4random_uniform((u_int32_t) dieSize) + 1;
+-(NSUInteger) rollDie:(NSUInteger)dieSize {
+	return [_randomSource nextIntWithUpperBound:dieSize] + 1;
+//	return [[self dieOfSize:dieSize] nextInt];
 }
 
-- (NSArray *)rollNumber:(NSNumber *)number ofDice:(unsigned long long)dieSize
-{
-	if(dieSize > UINT32_MAX)
-	{
-		return nil;
+-(NSArray <NSNumber *> *) rollNumber:(NSUInteger)number
+							  ofDice:(NSUInteger)dieSize {
+	return [self rollNumber:number
+					 ofDice:dieSize
+				withOptions:0];
+}
+
+-(NSArray <NSNumber *> *) rollNumber:(NSUInteger)number
+							  ofDice:(NSUInteger)dieSize
+						 withOptions:(SA_DiceRollingOptions)options {
+	NSMutableArray *rollsArray = [NSMutableArray arrayWithCapacity:number];
+
+	for (NSUInteger i = 0; i < number; i++) {
+		NSUInteger dieRoll;
+		do {
+			dieRoll = [self rollDie:dieSize];
+			[rollsArray addObject:@(dieRoll)];
+		} while ((options & SA_DiceRollingExplodingDice)
+				 && dieSize > 1
+				 && dieRoll == dieSize);
 	}
-	
-	unsigned long long numRolls = number.unsignedLongLongValue;
-	
-	NSMutableArray *rollsArray = [NSMutableArray arrayWithCapacity:numRolls];
-	for(unsigned long long i = 0; i < numRolls; i++)
-	{
-		[rollsArray addObject:@((unsigned long long) arc4random_uniform((u_int32_t) dieSize) + 1)];
-	}
-	
+
 	return rollsArray;
 }
+
+-(char) rollFudgeDie {
+	NSInteger d3roll = [self rollDie:3];
+	return (char) (d3roll - 2);
+}
+
+-(NSArray <NSNumber *> *) rollFudgeDice:(NSUInteger)number {
+	NSMutableArray *rollsArray = [NSMutableArray arrayWithCapacity:number];
+
+	for (NSUInteger i = 0; i < number; i++) {
+		[rollsArray addObject:@([self rollFudgeDie])];
+	}
+
+	return rollsArray;
+}
+
+/****************************/
+#pragma mark - Helper methods
+/****************************/
+
+//-(GKRandomDistribution *) dieOfSize:(NSUInteger) dieSize {
+//	if (_dice[@(dieSize)] == nil)
+//		_dice[@(dieSize)] = [GKRandomDistribution distributionForDieWithSideCount:dieSize];
+//
+//	return _dice[@(dieSize)];
+//}
 
 @end

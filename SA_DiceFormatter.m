@@ -9,7 +9,8 @@
 #import "SA_DiceFormatter.h"
 
 #import "SA_DiceExpressionStringConstants.h"
-#import "SA_DiceErrorHandling.h"
+
+#import "SA_Utility.h"
 
 /********************************/
 #pragma mark File-scope variables
@@ -19,12 +20,11 @@ static SA_DiceFormatterBehavior _defaultFormatterBehavior = SA_DiceFormatterBeha
 static NSDictionary *_errorDescriptions;
 static NSDictionary *_stringFormatRules;
 
-/**********************************************************/
+/***************************************************/
 #pragma mark - SA_DiceFormatter class implementation
-/**********************************************************/
+/***************************************************/
 
-@implementation SA_DiceFormatter
-{
+@implementation SA_DiceFormatter {
 	SA_DiceFormatterBehavior _formatterBehavior;
 }
 
@@ -32,12 +32,10 @@ static NSDictionary *_stringFormatRules;
 #pragma mark - Properties (general)
 /**********************************/
 
-- (void)setFormatterBehavior:(SA_DiceFormatterBehavior)newFormatterBehavior
-{
+-(void) setFormatterBehavior:(SA_DiceFormatterBehavior)newFormatterBehavior {
 	_formatterBehavior = newFormatterBehavior;
 	
-	switch (_formatterBehavior)
-	{
+	switch (_formatterBehavior) {
 		case SA_DiceFormatterBehaviorLegacy:
 			self.legacyModeErrorReportingEnabled = YES;
 			break;
@@ -49,41 +47,33 @@ static NSDictionary *_stringFormatRules;
 			
 		case SA_DiceFormatterBehaviorDefault:
 		default:
-			[self setFormatterBehavior:[SA_DiceFormatter defaultFormatterBehavior]];
+			self.formatterBehavior = SA_DiceFormatter.defaultFormatterBehavior;
 			break;
 	}
 }
 
-- (SA_DiceFormatterBehavior)formatterBehavior
-{
+-(SA_DiceFormatterBehavior) formatterBehavior {
 	return _formatterBehavior;
 }
 
-/****************************************/
-#pragma mark - "Class property" accessors
-/****************************************/
+/******************************/
+#pragma mark - Class properties
+/******************************/
 
-+ (void)setDefaultFormatterBehavior:(SA_DiceFormatterBehavior)newDefaultFormatterBehavior
-{
-	if(newDefaultFormatterBehavior == SA_DiceFormatterBehaviorDefault)
-	{
++(void) setDefaultFormatterBehavior:(SA_DiceFormatterBehavior)newDefaultFormatterBehavior {
+	if (newDefaultFormatterBehavior == SA_DiceFormatterBehaviorDefault) {
 		_defaultFormatterBehavior = SA_DiceFormatterBehaviorLegacy;
-	}
-	else
-	{
+	} else {
 		_defaultFormatterBehavior = newDefaultFormatterBehavior;
 	}
 }
 
-+ (SA_DiceFormatterBehavior)defaultFormatterBehavior
-{
++(SA_DiceFormatterBehavior) defaultFormatterBehavior {
 	return _defaultFormatterBehavior;
 }
 
-+ (NSDictionary *)stringFormatRules
-{
-	if(_stringFormatRules == nil)
-	{
++(NSDictionary *) stringFormatRules {
+	if (_stringFormatRules == nil) {
 		[SA_DiceFormatter loadStringFormatRules];
 	}
 	
@@ -94,36 +84,30 @@ static NSDictionary *_stringFormatRules;
 #pragma mark - Initializers & factory methods
 /********************************************/
 
-- (instancetype)init
-{
+-(instancetype) init {
 	return [self initWithBehavior:SA_DiceFormatterBehaviorDefault];
 }
 
-- (instancetype)initWithBehavior:(SA_DiceFormatterBehavior)formatterBehavior
-{
-	if(self = [super init])
-	{
+-(instancetype) initWithBehavior:(SA_DiceFormatterBehavior)formatterBehavior {
+	if (self = [super init]) {
 		self.formatterBehavior = formatterBehavior;
 		
-		if(_errorDescriptions == nil)
-		{
+		if (_errorDescriptions == nil) {
 			[SA_DiceFormatter loadErrorDescriptions];
 		}
-		if(_stringFormatRules == nil)
-		{
+
+		if (_stringFormatRules == nil) {
 			[SA_DiceFormatter loadStringFormatRules];
 		}
 	}
 	return self;
 }
 
-+ (instancetype)defaultFormatter
-{
++(instancetype) defaultFormatter {
 	return [[SA_DiceFormatter alloc] initWithBehavior:SA_DiceFormatterBehaviorDefault];
 }
 
-+ (instancetype)formatterWithBehavior:(SA_DiceFormatterBehavior)formatterBehavior
-{
++(instancetype) formatterWithBehavior:(SA_DiceFormatterBehavior)formatterBehavior {
 	return [[SA_DiceFormatter alloc] initWithBehavior:formatterBehavior];
 }
 
@@ -131,37 +115,27 @@ static NSDictionary *_stringFormatRules;
 #pragma mark - Public methods
 /****************************/
 
-- (NSString *)stringFromExpression:(NSDictionary *)expression
-{
-	if(_formatterBehavior == SA_DiceFormatterBehaviorSimple)
-	{
+-(NSString *) stringFromExpression:(SA_DiceExpression *)expression {
+	if (_formatterBehavior == SA_DiceFormatterBehaviorSimple) {
 		return [self simpleStringFromExpression:expression];
-	}
-	else // if(_formatterBehavior == SA_DiceFormatterBehaviorLegacy)
-	{
+	} else { // if(_formatterBehavior == SA_DiceFormatterBehaviorLegacy)
 		return [self legacyStringFromExpression:expression];
 	}
 }
 
 // NOT YET IMPLEMENTED
-- (NSAttributedString *)attributedStringFromExpression:(NSDictionary *)expression
-{
+-(NSAttributedString *) attributedStringFromExpression:(SA_DiceExpression *)expression {
 	return [[NSAttributedString alloc] initWithString:[self stringFromExpression:expression]];
 }
 
 /**********************************************/
-#pragma mark - "Legacy" behavior implementation
+#pragma mark - “Legacy” behavior implementation
 /**********************************************/
-
-// PROPERTIES
-
-@synthesize legacyModeErrorReportingEnabled = _legacyModeErrorReportingEnabled;
 
 // METHODS
 
-- (NSString *)legacyStringFromExpression:(NSDictionary *)expression
-{
-	__block NSMutableString *formattedString = [NSMutableString string];
+-(NSString *) legacyStringFromExpression:(SA_DiceExpression *)expression {
+	NSMutableString *formattedString = [NSMutableString string];
 	
 	// Attach the formatted string representation of the expression itself.
 	[formattedString appendString:[self legacyStringFromIntermediaryExpression:expression]];
@@ -169,41 +143,20 @@ static NSDictionary *_stringFormatRules;
 	// An expression may contain either a result, or one or more errors.
 	// If a result is present, attach it. If errors are present, attach them
 	// only if error reporting is enabled.
-	if(expression[SA_DB_RESULT] != nil)
-	{
-		[formattedString appendFormat:@" = %@", expression[SA_DB_RESULT]];
-	}
-	else if(_legacyModeErrorReportingEnabled == YES && [getErrorsForExpression(expression) count] > 0)
-	{
-		if([getErrorsForExpression(expression) count] == 1)
-		{
-			[formattedString appendFormat:@" [ERROR: %@]", [SA_DiceFormatter descriptionForError:[getErrorsForExpression(expression) firstObject]]];
-		}
-		else
-		{
-			[formattedString appendFormat:@" [ERRORS: "];
-			[getErrorsForExpression(expression) enumerateObjectsUsingBlock:^(NSString *error, NSUInteger idx, BOOL *stop)
-			{
-				[formattedString appendString:[SA_DiceFormatter descriptionForError:error]];
-				if(idx != [getErrorsForExpression(expression) count] - 1)
-				{
-					[formattedString appendFormat:@" / "];
-				}
-				else
-				{
-					[formattedString appendFormat:@"]"];
-				}
-			}];
-		}
+	if (expression.result != nil) {
+		[formattedString appendFormat:@" = %@", expression.result];
+	} else if (_legacyModeErrorReportingEnabled == YES &&
+			   expression.errorBitMask != 0) {
+		[formattedString appendFormat:((__builtin_popcountl(expression.errorBitMask) == 1) ? @" [ERROR: %@]" : @" [ERRORS: %@]"),
+		 [SA_DiceFormatter descriptionForErrors:expression.errorBitMask]];
 	}
 	
 	// Make all instances of the minus sign be represented with the proper,
 	// canonical minus sign.
-	return [self rectifyMinusSignInString:formattedString];
+	return [SA_DiceFormatter rectifyMinusSignInString:formattedString];
 }
 
-- (NSString *)legacyStringFromIntermediaryExpression:(NSDictionary *)expression
-{
+-(NSString *) legacyStringFromIntermediaryExpression:(SA_DiceExpression *)expression {
 	/*
 	 In legacy behavior, we do not print the results of intermediate terms in 
 	 the expression tree (since the legacy output format was designed for 
@@ -216,247 +169,229 @@ static NSDictionary *_stringFormatRules;
 	 For this reasons, when we recursively retrieve the string representations
 	 of sub-expressions, we call this method, not legacyStringFromExpression:.
 	 */
-	
-	if([expression[SA_DB_TERM_TYPE] isEqualToString:SA_DB_TERM_TYPE_OPERATION])
-	{
-		return [self legacyStringFromOperationExpression:expression];
-	}
-	else if([expression[SA_DB_TERM_TYPE] isEqualToString:SA_DB_TERM_TYPE_ROLL_COMMAND])
-	{
-		return [self legacyStringFromRollCommandExpression:expression];
-	}
-	else if([expression[SA_DB_TERM_TYPE] isEqualToString:SA_DB_TERM_TYPE_VALUE])
-	{
-		return [self legacyStringFromValueExpression:expression];
-	}
-	else // if([expression[SA_DB_TERM_TYPE] isEqualToString:SA_DB_TERM_TYPE_NONE]), probably
-	{
-		return expression[SA_DB_INPUT_STRING];
+
+	switch (expression.type) {
+		case SA_DiceExpressionTerm_OPERATION: {
+			return [self legacyStringFromOperationExpression:expression];
+			break;
+		}
+		case SA_DiceExpressionTerm_ROLL_COMMAND: {
+			return [self legacyStringFromRollCommandExpression:expression];
+			break;
+		}
+		case SA_DiceExpressionTerm_ROLL_MODIFIER: {
+			return [self legacyStringFromRollModifierExpression:expression];
+			break;
+		}
+		case SA_DiceExpressionTerm_VALUE: {
+			return [self legacyStringFromValueExpression:expression];
+			break;
+		}
+		default: {
+			return expression.inputString;
+			break;
+		}
 	}
 }
 
-- (NSString *)legacyStringFromOperationExpression:(NSDictionary *)expression
-{
-	NSMutableString *formattedString = [NSMutableString string];
-	
-	// Check to see if the term is a negation or subtraction operation.
-	if([expression[SA_DB_OPERATOR] isEqualToString:SA_DB_OPERATOR_MINUS])
-	{
-		// Get the canonical representation for the operator.
-		NSString *operatorString = [SA_DiceFormatter canonicalRepresentationForOperator:SA_DB_OPERATOR_MINUS];
-		
-		// If we have a left operand, it's subtraction. If we do not, it's
-		// negation.
-		if(expression[SA_DB_OPERAND_LEFT] == nil)
-		{
-			// Get the operand.
-			NSDictionary *rightOperandExpression = expression[SA_DB_OPERAND_RIGHT];
-			
-			// Write out the string representations of operator and the 
-			// right-hand-side expression.
-			[formattedString appendString:operatorString];
-			[formattedString appendString:[self legacyStringFromIntermediaryExpression:rightOperandExpression]];
-			
-			return formattedString;
-		}
-		else
-		{
-			// Get the operands.
-			NSDictionary *leftOperandExpression = expression[SA_DB_OPERAND_LEFT];
-			NSDictionary *rightOperandExpression = expression[SA_DB_OPERAND_RIGHT];
-			
-			// Write out the string representations of the left-hand-side
-			// expression, the operator, and the right-hand-side expression.
-			[formattedString appendString:[self legacyStringFromIntermediaryExpression:leftOperandExpression]];
-			[formattedString appendFormat:@" %@ ", operatorString];
-			[formattedString appendString:[self legacyStringFromIntermediaryExpression:rightOperandExpression]];
-			
-			return formattedString;
-		}
-	}
-	// Check to see if the term is an addition or subtraction operation.
-	else if([expression[SA_DB_OPERATOR] isEqualToString:SA_DB_OPERATOR_PLUS])
-	{
-		NSString *operatorString = [SA_DiceFormatter canonicalRepresentationForOperator:SA_DB_OPERATOR_PLUS];
-
-		// Get the operands.
-		NSDictionary *leftOperandExpression = expression[SA_DB_OPERAND_LEFT];
-		NSDictionary *rightOperandExpression = expression[SA_DB_OPERAND_RIGHT];
-				
-		// Write out the string representations of the left-hand-side
-		// expression, the operator, and the right-hand-side expression.
-		[formattedString appendString:[self legacyStringFromIntermediaryExpression:leftOperandExpression]];
-		[formattedString appendFormat:@" %@ ", operatorString];
-		[formattedString appendString:[self legacyStringFromIntermediaryExpression:rightOperandExpression]];
-		
-		return formattedString;
-	}
-	// Check to see if the term is a multiplication operation.
-	else if([expression[SA_DB_OPERATOR] isEqualToString:SA_DB_OPERATOR_TIMES])
-	{
-		// Get the canonical representation for the operator.
-		NSString *operatorString = [SA_DiceFormatter canonicalRepresentationForOperator:SA_DB_OPERATOR_TIMES];
-		
-		// Get the operands.
-		NSDictionary *leftOperandExpression = expression[SA_DB_OPERAND_LEFT];
-		NSDictionary *rightOperandExpression = expression[SA_DB_OPERAND_RIGHT];
-		
-		// Write out the string representations of the left-hand-side
-		// expression, the operator, and the right-hand-side expression.
-		[formattedString appendString:[self legacyStringFromIntermediaryExpression:leftOperandExpression]];
-		[formattedString appendFormat:@" %@ ", operatorString];
-		[formattedString appendString:[self legacyStringFromIntermediaryExpression:rightOperandExpression]];
-		
-		return formattedString;
-	}
-	else
-	{
+-(NSString *) legacyStringFromOperationExpression:(SA_DiceExpression *)expression {
+	if (expression.operator == SA_DiceExpressionOperator_MINUS &&
+		expression.leftOperand == nil) {
+		// Check to see if the term is a negation operation.
+		return [@[ [SA_DiceFormatter canonicalRepresentationForOperator:SA_DiceExpressionOperator_MINUS],
+				   [self legacyStringFromIntermediaryExpression:expression.rightOperand]
+				   ] componentsJoinedByString:@""];
+	} else if (expression.operator == SA_DiceExpressionOperator_MINUS ||
+			   expression.operator == SA_DiceExpressionOperator_PLUS ||
+			   expression.operator == SA_DiceExpressionOperator_TIMES) {
+		// Check to see if the term is an addition, subtraction, or
+		// multiplication operation.
+		return [@[ [self legacyStringFromIntermediaryExpression:expression.leftOperand],
+				   [SA_DiceFormatter canonicalRepresentationForOperator:expression.operator],
+				   [self legacyStringFromIntermediaryExpression:expression.rightOperand]
+				   ] componentsJoinedByString:@" "];
+	} else {
 		// If the operator is not one of the supported operators, default to
 		// outputting the input string.
-		return expression[SA_DB_INPUT_STRING];
+		return expression.inputString;
 	}
 }
 
-- (NSString *)legacyStringFromRollCommandExpression:(NSDictionary *)expression
-{
+-(NSString *) legacyStringFromRollCommandExpression:(SA_DiceExpression *)expression {
 	/*
 	 In legacy behavior, we print the result of roll commands with the rolls
 	 generated by the roll command. If a roll command generates a roll-related 
-	 error (any of the errors that begin with SA_DB_DIE_), we print "ERROR" 
-	 in place of a result.
+	 error (any of the errors that begin with DIE_), we print “ERROR” in place 
+	 of a result.
 	 
 	 Legacy behavior assumes support for roll-and-sum only, so we do not need
 	 to adjust the output format for different roll commands.
 	*/
-	__block NSMutableString *formattedString = [NSMutableString string];
-	
-	// Append the die roll expression itself.
-	[formattedString appendString:[self legacyStringFromIntermediaryExpression:expression[SA_DB_ROLL_DIE_COUNT]]];
-	[formattedString appendString:[SA_DiceFormatter canonicalRollCommandDelimiterRepresentation]];
-	[formattedString appendString:[self legacyStringFromIntermediaryExpression:expression[SA_DB_ROLL_DIE_SIZE]]];
-	
-	[formattedString appendFormat:@" < "];
-
-	// Append a list of the rolled values, if any.
-	if(expression[SA_DB_ROLLS] != nil && [expression[SA_DB_ROLLS] count] > 0)
-	{
-		[expression[SA_DB_ROLLS] enumerateObjectsUsingBlock:^(NSNumber *roll, NSUInteger idx, BOOL *stop) {
-			[formattedString appendFormat:@"%@ ", roll];
-		}];
-		
-		[formattedString appendFormat:@"= "];
-	}
-	
-	// Append either the result, or the word 'ERROR'.
-	[formattedString appendFormat:@"%@ >", ((expression[SA_DB_RESULT] != nil) ? expression[SA_DB_RESULT] : @"ERROR")];
-	
-	return formattedString;
+	return [NSString stringWithFormat:@"%@%@%@ < %@%@ >",
+			[self legacyStringFromIntermediaryExpression:expression.dieCount],
+			[SA_DiceFormatter canonicalRepresentationForRollCommandDelimiter:expression.rollCommand],
+			[self legacyStringFromIntermediaryExpression:expression.dieSize],
+			((expression.rolls != nil) ?
+			 [NSString stringWithFormat:@"%@ = ",
+			  [(expression.dieType == SA_DiceExpressionDice_FUDGE ?
+				[self formattedFudgeRolls:expression.rolls] :
+				expression.rolls
+				) componentsJoinedByString:@" "]] :
+			 @""),
+			(expression.result ?: @"ERROR")];
 }
 
-- (NSString *)legacyStringFromValueExpression:(NSDictionary *)expression
-{
-	// We use the value for the SA_DB_VALUE key and not the SA_DB_RESULT key
-	// because they should be the same, and the SA_DB_RESULT key might not
-	// have a value (if the expression was not evaluated); this saves us
-	// having to compare it against nil, and saves code.
-	return [expression[SA_DB_VALUE] stringValue];
+-(NSArray *) formattedFudgeRolls:(NSArray <NSNumber *> *)rolls {
+	static NSDictionary *fudgeDieRollRepresentations;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		fudgeDieRollRepresentations = @{ @(-1): [SA_DiceFormatter canonicalRepresentationForOperator:SA_DiceExpressionOperator_MINUS],
+										 @(0): @"0",
+										 @(1): [SA_DiceFormatter canonicalRepresentationForOperator:SA_DiceExpressionOperator_PLUS]
+										 };
+	});
+
+	return [rolls map:^NSString *(NSNumber *roll) {
+		return fudgeDieRollRepresentations[roll];
+	}];
+}
+
+-(NSString *) legacyStringFromRollModifierExpression:(SA_DiceExpression *)expression {
+	/*
+	 In legacy behavior, we print the result of roll modifiers with the rolls
+	 generated by the roll command, plus the modifications. If a roll modifier 
+	 generates an error, we print “ERROR” in place of any of the components.
+
+	 Legacy behavior assumes support for the ‘keep’ modifier only, so we do not 
+	 need to adjust the output format for different roll modifiers.
+	 */
+	NSUInteger keptHowMany = expression.rightOperand.result.unsignedIntegerValue;
+	return [NSString stringWithFormat:@"%@%@%@%@%@ < %@ less %@ leaves %@ = %@ >",
+			[self legacyStringFromIntermediaryExpression:expression.leftOperand.dieCount],
+			[SA_DiceFormatter canonicalRepresentationForRollCommandDelimiter:expression.leftOperand.rollCommand],
+			[self legacyStringFromIntermediaryExpression:expression.leftOperand.dieSize],
+			[SA_DiceFormatter canonicalRepresentationForRollModifierDelimiter:expression.rollModifier],
+			expression.rightOperand.result,
+			((expression.leftOperand.rolls != nil) ?
+			 [(expression.leftOperand.dieType == SA_DiceExpressionDice_FUDGE ?
+			   [self formattedFudgeRolls:expression.rolls] :
+			   expression.leftOperand.rolls
+			   ) componentsJoinedByString:@" "] :
+			 @""),
+			[(expression.leftOperand.dieType == SA_DiceExpressionDice_FUDGE ?
+			  [self formattedFudgeRolls:[expression.rolls subarrayWithRange:NSRangeMake(keptHowMany, expression.rolls.count - keptHowMany)]] :
+			  [expression.rolls subarrayWithRange:NSRangeMake(keptHowMany, expression.rolls.count - keptHowMany)]
+			  ) componentsJoinedByString:@" "],
+			[(expression.leftOperand.dieType == SA_DiceExpressionDice_FUDGE ?
+			  [self formattedFudgeRolls:[expression.rolls subarrayWithRange:NSRangeMake(0, keptHowMany)]] :
+			  [expression.rolls subarrayWithRange:NSRangeMake(0, keptHowMany)]
+			  ) componentsJoinedByString:@" "],
+			(expression.result ?: @"ERROR")];
+}
+
+-(NSString *) legacyStringFromValueExpression:(SA_DiceExpression *)expression {
+	if ([expression.inputString.lowercaseString isEqualToString:@"f"]) {
+		return @"F";
+	} else {
+		// We use the value for the ‘value’ property and not the ‘result’ property
+		// because they should be the same, and the ‘result’ property might not
+		// have a value (if the expression was not evaluated); this saves us
+		// having to compare it against nil, and saves code.
+		return [expression.value stringValue];
+	}
 }
 
 /**********************************************/
-#pragma mark - "Simple" behavior implementation
+#pragma mark - “Simple” behavior implementation
 /**********************************************/
 
-- (NSString *)simpleStringFromExpression:(NSDictionary *)expression
-{
-	NSMutableString *formattedString = [NSMutableString string];
-	
-	if(expression[SA_DB_RESULT] != nil)
-	{
-		[formattedString appendFormat:@"%@", expression[SA_DB_RESULT]];
-	}
-	else
-	{
-		[formattedString appendFormat:@"ERROR"];
-	}
+-(NSString *) simpleStringFromExpression:(SA_DiceExpression *)expression {
+	NSString *formattedString = [NSString stringWithFormat:@"%@", 
+								 (expression.result ?: @"ERROR")];
 	
 	// Make all instances of the minus sign be represented with the proper,
 	// canonical minus sign.
-	return [self rectifyMinusSignInString:formattedString];
+	return [SA_DiceFormatter rectifyMinusSignInString:formattedString];
 }
 
 /****************************/
 #pragma mark - Helper methods
 /****************************/
 
-- (NSString *)rectifyMinusSignInString:(NSString *)aString
-{
-	__block NSMutableString* sameStringButMutable = aString.mutableCopy;
-	NSLog(@"%@", sameStringButMutable);
++(NSString *) rectifyMinusSignInString:(NSString *)aString {
+	NSMutableString* sameStringButMutable = aString.mutableCopy;
 	
-	NSString *validMinusSignCharacters = [SA_DiceFormatter stringFormatRules][SA_DB_VALID_CHARACTERS][SA_DB_VALID_OPERATOR_CHARACTERS][SA_DB_OPERATOR_MINUS];
-	NSString *theRealMinusSign = [SA_DiceFormatter canonicalRepresentationForOperator:SA_DB_OPERATOR_MINUS];
-	
-	[validMinusSignCharacters enumerateSubstringsInRange:NSMakeRange(0, validMinusSignCharacters.length) 
+	NSString *validMinusSignCharacters = [SA_DiceFormatter stringFormatRules][SA_DB_VALID_CHARACTERS][SA_DB_VALID_OPERATOR_CHARACTERS][NSStringFromSA_DiceExpressionOperator(SA_DiceExpressionOperator_MINUS)];
+	[validMinusSignCharacters enumerateSubstringsInRange:NSRangeMake(0, validMinusSignCharacters.length) 
 												 options:NSStringEnumerationByComposedCharacterSequences 
-											  usingBlock:^(NSString *character, NSRange characterRange, NSRange enclosingRange, BOOL *stop)
-	 {
-		 [sameStringButMutable replaceOccurrencesOfString:character withString:theRealMinusSign options:NSLiteralSearch range:NSMakeRange(0, sameStringButMutable.length)];
+											  usingBlock:^(NSString *aValidMinusSignCharacter,
+														   NSRange characterRange,
+														   NSRange enclosingRange,
+														   BOOL *stop) {
+		 [sameStringButMutable replaceOccurrencesOfString:aValidMinusSignCharacter 
+											   withString:[SA_DiceFormatter canonicalRepresentationForOperator:SA_DiceExpressionOperator_MINUS]
+												  options:NSLiteralSearch 
+													range:NSRangeMake(0, sameStringButMutable.length)];
 	 }];
-	NSLog(@"%@", sameStringButMutable);
 	
-	return sameStringButMutable.copy;
+	return [sameStringButMutable copy];
 }
 
-+ (void)loadErrorDescriptions
-{
-	NSString* errorDescriptionsPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"SA_DB_ErrorDescriptions" ofType:@"plist"];
++(void) loadErrorDescriptions {
+	NSString* errorDescriptionsPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"SA_DB_ErrorDescriptions"
+																					   ofType:@"plist"];
 	_errorDescriptions = [NSDictionary dictionaryWithContentsOfFile:errorDescriptionsPath];
-	if(!_errorDescriptions)
-	{
+	if (!_errorDescriptions) {
 		NSLog(@"Could not load error descriptions!");
 	}
 }
 
-+ (NSString *)descriptionForError:(NSString *)error
-{
-	if(_errorDescriptions == nil)
-	{
++(NSString *) descriptionForErrors:(NSUInteger)errorBitMask {
+	if (_errorDescriptions == nil) {
 		[SA_DiceFormatter loadErrorDescriptions];
 	}
-	
-	if(_errorDescriptions[error] != nil)
-	{
-		return _errorDescriptions[error];
+
+	NSMutableArray <NSString *> *errorDescriptions = [NSMutableArray array];
+	for (int i = 0; i <= 18; i++) {
+		if ((errorBitMask & 1 << i) == 0) continue;
+		NSString *errorName = NSStringFromSA_DiceExpressionError((SA_DiceExpressionError) 1 << i);
+		[errorDescriptions addObject:(_errorDescriptions[errorName] ?: errorName)];
 	}
-	else
-	{
-		return error;
-	}
+
+	return [errorDescriptions componentsJoinedByString:@" / "];
 }
 
-+ (void)loadStringFormatRules
-{
-	NSString *stringFormatRulesPath = [[NSBundle bundleForClass:[self class]] pathForResource:SA_DB_STRING_FORMAT_RULES_PLIST_NAME ofType:@"plist"];
++(void) loadStringFormatRules {
+	NSString *stringFormatRulesPath = [[NSBundle bundleForClass:[self class]] pathForResource:SA_DB_STRING_FORMAT_RULES_PLIST_NAME
+																					   ofType:@"plist"];
 	_stringFormatRules = [NSDictionary dictionaryWithContentsOfFile:stringFormatRulesPath];
-	if(!_stringFormatRules)
-	{
+	if (!_stringFormatRules) {
 		NSLog(@"Could not load string format rules!");
 	}
 }
 
-+ (NSString *)canonicalRepresentationForOperator:(NSString *)operatorName
-{
-	return [SA_DiceFormatter canonicalOperatorRepresentations][operatorName];
++(NSString *) canonicalRepresentationForOperator:(SA_DiceExpressionOperator)operator {
+	return [SA_DiceFormatter canonicalOperatorRepresentations][NSStringFromSA_DiceExpressionOperator(operator)];
 }
 
-+ (NSDictionary *)canonicalOperatorRepresentations
-{
++(NSDictionary *) canonicalOperatorRepresentations {
 	return [SA_DiceFormatter stringFormatRules][SA_DB_CANONICAL_REPRESENTATIONS][SA_DB_CANONICAL_OPERATOR_REPRESENTATIONS];
 }
 
-+ (NSString *)canonicalRollCommandDelimiterRepresentation
-{
-	return [SA_DiceFormatter stringFormatRules][SA_DB_CANONICAL_REPRESENTATIONS][SA_DB_CANONICAL_ROLL_COMMAND_DELIMITER_REPRESENTATION];
++(NSString *) canonicalRepresentationForRollCommandDelimiter:(SA_DiceExpressionRollCommand)command {
+	return [SA_DiceFormatter canonicalRollCommandDelimiterRepresentations][NSStringFromSA_DiceExpressionRollCommand(command)];
+}
+
++(NSDictionary *) canonicalRollCommandDelimiterRepresentations {
+	return [SA_DiceFormatter stringFormatRules][SA_DB_CANONICAL_REPRESENTATIONS][SA_DB_CANONICAL_ROLL_COMMAND_DELIMITER_REPRESENTATIONS];
+}
+
++(NSString *) canonicalRepresentationForRollModifierDelimiter:(SA_DiceExpressionRollModifier)modifier {
+	return [SA_DiceFormatter canonicalRollModifierDelimiterRepresentations][NSStringFromSA_DiceExpressionRollModifier(modifier)];
+}
+
++(NSDictionary *) canonicalRollModifierDelimiterRepresentations {
+	return [SA_DiceFormatter stringFormatRules][SA_DB_CANONICAL_REPRESENTATIONS][SA_DB_CANONICAL_ROLL_MODIFIER_DELIMITER_REPRESENTATIONS];
 }
 
 @end

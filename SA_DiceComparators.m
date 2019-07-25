@@ -10,34 +10,24 @@
 
 #import "SA_DiceExpressionStringConstants.h"
 
-NSComparisonResult compareEvaluatedExpressionsByResult(NSDictionary* expression1, NSDictionary *expression2)
-{
-	if([expression1[SA_DB_RESULT] integerValue] < [expression2[SA_DB_RESULT] integerValue])
-	{
+NSComparisonResult compareEvaluatedExpressionsByResult(NSDictionary* expression1,
+													   NSDictionary *expression2) {
+	if ([expression1[SA_DB_RESULT] integerValue] < [expression2[SA_DB_RESULT] integerValue]) {
 		return NSOrderedAscending;
-	}
-	else if([expression1[SA_DB_RESULT] integerValue] > [expression2[SA_DB_RESULT] integerValue])
-	{
+	} else if ([expression1[SA_DB_RESULT] integerValue] > [expression2[SA_DB_RESULT] integerValue]) {
 		return NSOrderedDescending;
-	}
-	else
-	{
+	} else {
 		return NSOrderedSame;
 	}
 }
 
-NSComparisonResult compareEvaluatedExpressionsByAttemptBonus(NSDictionary* expression1, NSDictionary *expression2)
-{
-	if([expression1[SA_DB_OPERAND_RIGHT][SA_DB_RESULT] integerValue] < [expression2[SA_DB_OPERAND_RIGHT][SA_DB_RESULT] integerValue])
-	{
+NSComparisonResult compareEvaluatedExpressionsByAttemptBonus(NSDictionary* expression1,
+															 NSDictionary *expression2) {
+	if ([expression1[SA_DB_OPERAND_RIGHT][SA_DB_RESULT] integerValue] < [expression2[SA_DB_OPERAND_RIGHT][SA_DB_RESULT] integerValue]) {
 		return NSOrderedAscending;
-	}
-	else if([expression1[SA_DB_OPERAND_RIGHT][SA_DB_RESULT] integerValue] > [expression2[SA_DB_OPERAND_RIGHT][SA_DB_RESULT] integerValue])
-	{
+	} else if ([expression1[SA_DB_OPERAND_RIGHT][SA_DB_RESULT] integerValue] > [expression2[SA_DB_OPERAND_RIGHT][SA_DB_RESULT] integerValue]) {
 		return NSOrderedDescending;
-	}
-	else
-	{
+	} else {
 		return NSOrderedSame;
 	}				 
 }
