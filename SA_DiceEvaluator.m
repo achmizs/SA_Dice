@@ -41,7 +41,7 @@
 	return _maxDieCount;
 }
 -(void) setMaxDieCount:(NSUInteger)maxDieCount {
-	if (maxDieCount > NSUIntegerMax / _maxDieSize) {
+	if (maxDieCount > (NSUIntegerMax / _maxDieSize)) {
 		_maxDieCount = NSUIntegerMax / _maxDieSize;
 	} else {
 		_maxDieCount = maxDieCount;
@@ -52,9 +52,11 @@
 	return _maxDieSize;
 }
 -(void) setMaxDieSize:(NSUInteger)maxDieSize {
-	if (maxDieSize > [_diceBag biggestPossibleDieSize] ||
-		maxDieSize > NSIntegerMax / _maxDieCount) {
-		_maxDieSize = ([_diceBag biggestPossibleDieSize] < (NSIntegerMax / _maxDieCount)) ? [_diceBag biggestPossibleDieSize] : NSIntegerMax / _maxDieCount;
+	if (   maxDieSize > [_diceBag biggestPossibleDieSize]
+		|| maxDieSize > (NSIntegerMax / _maxDieCount)) {
+		_maxDieSize = (([_diceBag biggestPossibleDieSize] < (NSIntegerMax / _maxDieCount))
+					   ? [_diceBag biggestPossibleDieSize]
+					   : (NSIntegerMax / _maxDieCount));
 	} else {
 		_maxDieSize = maxDieSize;
 	}
@@ -65,12 +67,14 @@
 /**************************/
 
 -(instancetype) init {
-	if (self = [super init]) {
-		_maxDieCount = DEFAULT_MAX_DIE_COUNT;
-		_maxDieSize = DEFAULT_MAX_DIE_SIZE;
-		
-		_diceBag = [SA_DiceBag new];
-	}
+	if (!(self = [super init]))
+		return nil;
+
+	_maxDieCount = DEFAULT_MAX_DIE_COUNT;
+	_maxDieSize = DEFAULT_MAX_DIE_SIZE;
+
+	_diceBag = [SA_DiceBag new];
+
 	return self;
 }
 
@@ -78,6 +82,8 @@
 #pragma mark - Public methods
 /****************************/
 
+// TODO: Possibly refuse to evaluate an expression that’s already evaluated?
+// (i.e., it has a  ...  .result?? .value??)
 -(SA_DiceExpression *) resultOfExpression:(SA_DiceExpression *)expression {
 	// Check to see if the expression is erroneous (i.e. the parser has judged
 	// that it is malformed, etc.). If so, decline to evaluate the expression;
@@ -87,26 +93,27 @@
 	}
 	
 	/*
-	 Even if an expression is not erroneous (i.e. if it has no syntax errors), 
-	 it may still not be possible to evaluate it. For example, ‘5d0’ is a
-	 perfectly well-formed die string, and will yield an expression tree as follows:
+	 NOTE: Even if an expression is not erroneous (i.e. if it has no syntax 
+	 errors), it may still not be possible to evaluate it. For example, ‘5d0’ 
+	 is a perfectly well-formed die string, and will yield an expression tree 
+	 as follows:
 	 
-	 @{SA_DB_TERM_TYPE		: SA_DB_TERM_TYPE_ROLL_COMMAND,
-	   SA_DB_ROLL_COMMAND	: SA_DB_ROLL_COMMAND_SUM,
-	   SA_DB_ROLL_DIE_COUNT	: @{SA_DB_TERM_TYPE : SA_DB_TERM_TYPE_VALUE,
-								SA_DB_VALUE		: @(5)
-								},
-	   SA_DB_ROLL_DIE_SIZE	: @{SA_DB_TERM_TYPE : SA_DB_TERM_TYPE_VALUE,
-								SA_DB_VALUE		: @(0)
-								}
-	   }
+	 [ type			: SA_DiceExpressionTerm_ROLL_COMMAND,
+	   rollCommand	: SA_DiceExpressionRollCommand_SUM,
+	   dieCount		: [ type	: SA_DiceExpressionTerm_VALUE,
+						value	: @(5)
+						],
+	   dieSize		: [ type	: SA_DiceExpressionTerm_VALUE,
+						value	: @(0)
+						]
+	   ]
 	 
 	 This is, of course, an illegal expression; we can’t roll a die of size 0
 	 (a die with zero sides?).
 	 
 	 If we encounter such an illegal expression, we add an appropriate error to 
-	 the term. We are not required to set a value for the SA_DB_RESULT key in 
-	 such a case.
+	 the -[errorBitMask]. We are not required to set a value (-[value] property)
+	 in such a case.
 	 */
 
 	switch (expression.type) {
@@ -146,7 +153,7 @@
 	SA_DiceExpression *result = [expression copy];
 
 	// For now, only sum and exploding sum (i.e., sum but with exploding dice)
-	// are supported Other sorts of roll commands may be added later.
+	// are supported. Other sorts of roll commands may be added later.
 	switch (result.rollCommand) {
 		case SA_DiceExpressionRollCommand_SUM:
 		case SA_DiceExpressionRollCommand_SUM_EXPLODING: {
@@ -256,9 +263,10 @@
 			// If the left-hand operand is not a roll-and-sum, then the KEEP
 			// modifier cannot be applied to it. In that case, we add an error
 			// and return the result without evaluating.
-			if (result.leftOperand.type != SA_DiceExpressionTerm_ROLL_COMMAND ||
-				(result.leftOperand.rollCommand != SA_DiceExpressionRollCommand_SUM &&
-				 result.leftOperand.rollCommand != SA_DiceExpressionRollCommand_SUM_EXPLODING)) {
+			if (   result.leftOperand.type != SA_DiceExpressionTerm_ROLL_COMMAND
+				|| (   result.leftOperand.rollCommand != SA_DiceExpressionRollCommand_SUM
+					&& result.leftOperand.rollCommand != SA_DiceExpressionRollCommand_SUM_EXPLODING)
+				) {
 				result.errorBitMask |= SA_DiceExpressionError_ROLL_MODIFIER_INAPPLICABLE;
 				return result;
 			}
@@ -347,12 +355,14 @@
 	switch (result.operator) {
 		case SA_DiceExpressionOperator_MINUS: {
 			// First, we check for possible overflow...
-			if (leftOperand > 0 && rightOperand < 0 &&
-				NSIntegerMax + rightOperand < leftOperand) {
+			if (   leftOperand > 0
+				&& rightOperand < 0
+				&& (NSIntegerMax + rightOperand) < leftOperand) {
 				result.errorBitMask |= SA_DiceExpressionError_INTEGER_OVERFLOW_SUBTRACTION;
 				break;
-			} else if (leftOperand < 0 && rightOperand > 0 &&
-					   NSIntegerMin + rightOperand > leftOperand) {
+			} else if (   leftOperand < 0
+					   && rightOperand > 0
+					   && (NSIntegerMin + rightOperand) > leftOperand) {
 				result.errorBitMask |= SA_DiceExpressionError_INTEGER_UNDERFLOW_SUBTRACTION;
 				break;
 			}
@@ -363,11 +373,14 @@
 		}
 		case SA_DiceExpressionOperator_PLUS: {
 			// First, we check for possible overflow...
-			if (rightOperand > 0 && leftOperand > 0 &&
-				NSIntegerMax - rightOperand < leftOperand) {
+			if (   rightOperand > 0
+				&& leftOperand > 0
+				&& (NSIntegerMax - rightOperand) < leftOperand) {
 				result.errorBitMask |= SA_DiceExpressionError_INTEGER_OVERFLOW_ADDITION;
 				break;
-			} else if(rightOperand < 0 && leftOperand < 0 && NSIntegerMin - rightOperand > leftOperand) {
+			} else if (   rightOperand < 0
+					   && leftOperand < 0
+					   && (NSIntegerMin - rightOperand) > leftOperand) {
 				result.errorBitMask |= SA_DiceExpressionError_INTEGER_UNDERFLOW_ADDITION;
 				break;
 			}
@@ -378,11 +391,19 @@
 		}
 		case SA_DiceExpressionOperator_TIMES: {
 			// First, we check for possible overflow...
-			if (( leftOperand == NSIntegerMin && ( rightOperand != 0 || rightOperand != 1 ))  ||
-				( rightOperand == NSIntegerMin && ( leftOperand != 0 || leftOperand != 1 )) ||
-				( leftOperand != 0 && ( (NSIntegerMax / ABS(leftOperand)) < rightOperand ))) {
-				if ((leftOperand > 0 && rightOperand > 0) ||
-					(leftOperand < 0 && rightOperand < 0)) {
+			if (   (   leftOperand == NSIntegerMin
+					&& (   rightOperand != 0
+						|| rightOperand != 1 ))
+				|| (   rightOperand == NSIntegerMin
+					&& (   leftOperand != 0
+						|| leftOperand != 1 ))
+				|| (   leftOperand != 0
+					&& ((NSIntegerMax / ABS(leftOperand)) < rightOperand))
+				) {
+				if (   (   leftOperand > 0
+						&& rightOperand > 0)
+					|| (   leftOperand < 0
+						&& rightOperand < 0)) {
 					result.errorBitMask |= SA_DiceExpressionError_INTEGER_OVERFLOW_MULTIPLICATION;
 				} else {
 					result.errorBitMask |= SA_DiceExpressionError_INTEGER_UNDERFLOW_MULTIPLICATION;
