@@ -1,10 +1,8 @@
 //
 //  SA_DiceExpression.h
-//  SA_IRCBotServer
 //
-//  Created by Said Achmiz on 6/23/19.
-//
-//
+//  Copyright 2016-2021 Said Achmiz.
+//  See LICENSE and README.md for more info.
 
 #import <Foundation/Foundation.h>
 

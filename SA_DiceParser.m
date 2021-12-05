@@ -1,10 +1,8 @@
 //
 //  SA_DiceParser.m
 //
-//	Copyright (c) 2016 Said Achmiz.
-//
-//	This software is licensed under the MIT license.
-//	See the file “LICENSE” for more information.
+//  Copyright 2016-2021 Said Achmiz.
+//  See LICENSE and README.md for more info.
 
 #import "SA_DiceParser.h"
 
