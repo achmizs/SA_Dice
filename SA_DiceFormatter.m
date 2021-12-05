@@ -145,9 +145,11 @@ static NSDictionary *_stringFormatRules;
 	// only if error reporting is enabled.
 	if (expression.result != nil) {
 		[formattedString appendFormat:@" = %@", expression.result];
-	} else if (_legacyModeErrorReportingEnabled == YES &&
-			   expression.errorBitMask != 0) {
-		[formattedString appendFormat:((__builtin_popcountl(expression.errorBitMask) == 1) ? @" [ERROR: %@]" : @" [ERRORS: %@]"),
+	} else if (   _legacyModeErrorReportingEnabled == YES
+			   && expression.errorBitMask != 0) {
+		[formattedString appendFormat:((__builtin_popcountl(expression.errorBitMask) == 1)
+									   ? @" [ERROR: %@]"
+									   : @" [ERRORS: %@]"),
 		 [SA_DiceFormatter descriptionForErrors:expression.errorBitMask]];
 	}
 	
@@ -167,7 +169,7 @@ static NSDictionary *_stringFormatRules;
 	 is printed along with the rolls.
 	 
 	 For this reasons, when we recursively retrieve the string representations
-	 of sub-expressions, we call this method, not legacyStringFromExpression:.
+	 of sub-expressions, we call this method, not -[legacyStringFromExpression:].
 	 */
 
 	switch (expression.type) {
@@ -352,9 +354,10 @@ static NSDictionary *_stringFormatRules;
 	}
 
 	NSMutableArray <NSString *> *errorDescriptions = [NSMutableArray array];
-	for (int i = 0; i <= 18; i++) {
-		if ((errorBitMask & 1 << i) == 0) continue;
-		NSString *errorName = NSStringFromSA_DiceExpressionError((SA_DiceExpressionError) 1 << i);
+	for (int i = 0; i <= 19; i++) {
+		if ((errorBitMask & (1 << i)) == 0)
+			continue;
+		NSString *errorName = NSStringFromSA_DiceExpressionError((SA_DiceExpressionError) (1 << i));
 		[errorDescriptions addObject:(_errorDescriptions[errorName] ?: errorName)];
 	}
 
