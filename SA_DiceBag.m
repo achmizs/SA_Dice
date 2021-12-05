@@ -14,18 +14,18 @@
 /*******************************************/
 
 @implementation SA_DiceBag {
-	GKRandomSource *_randomSource;
+//	GKRandomSource *_randomSource;
 
-//	NSMutableDictionary <NSNumber *, GKRandomDistribution *> *_dice;
+	NSMutableDictionary <NSNumber *, GKRandomDistribution *> *_dice;
 }
 
 -(instancetype) init {
-	self = [super init];
-	if (!self) return nil;
+	if (!(self = [super init]))
+		return nil;
 
-	_randomSource = [GKMersenneTwisterRandomSource new];
+//	_randomSource = [GKMersenneTwisterRandomSource new];
 
-//	_dice = [NSMutableDictionary dictionary];
+	_dice = [NSMutableDictionary dictionary];
 
 	return self;
 }
@@ -39,8 +39,8 @@
 }
 
 -(NSUInteger) rollDie:(NSUInteger)dieSize {
-	return [_randomSource nextIntWithUpperBound:dieSize] + 1;
-//	return [[self dieOfSize:dieSize] nextInt];
+//	return [_randomSource nextIntWithUpperBound:dieSize] + 1;
+	return [[self dieOfSize:dieSize] nextInt];
 }
 
 -(NSArray <NSNumber *> *) rollNumber:(NSUInteger)number
@@ -60,7 +60,7 @@
 		do {
 			dieRoll = [self rollDie:dieSize];
 			[rollsArray addObject:@(dieRoll)];
-		} while ((options & SA_DiceRollingExplodingDice)
+		} while (   options & SA_DiceRollingExplodingDice
 				 && dieSize > 1
 				 && dieRoll == dieSize);
 	}
@@ -87,11 +87,13 @@
 #pragma mark - Helper methods
 /****************************/
 
-//-(GKRandomDistribution *) dieOfSize:(NSUInteger) dieSize {
-//	if (_dice[@(dieSize)] == nil)
-//		_dice[@(dieSize)] = [GKRandomDistribution distributionForDieWithSideCount:dieSize];
-//
-//	return _dice[@(dieSize)];
-//}
+-(GKRandomDistribution *) dieOfSize:(NSUInteger) dieSize {
+	if (_dice[@(dieSize)] == nil)
+		_dice[@(dieSize)] = [[GKRandomDistribution alloc] initWithRandomSource:[GKMersenneTwisterRandomSource new]
+																   lowestValue:1
+																  highestValue:dieSize];
+
+	return _dice[@(dieSize)];
+}
 
 @end
