@@ -99,28 +99,56 @@ NSComparisonResult compareEvaluatedExpressionsByAttemptBonus(SA_DiceExpression *
 #pragma mark - Properties
 /************************/
 
+// The expression’s type (operation, roll command, simple value, etc.).
 @property SA_DiceExpressionTermType type;
 
-@property NSUInteger errorBitMask;
+/*==============================================================================
+ The following four sets of properties pertain to expressions of specific types.
+ */
 
+// Expressions of type SA_DiceExpressionTerm_OPERATION.
 @property SA_DiceExpressionOperator operator;
 @property (nonatomic, strong) SA_DiceExpression *leftOperand;
 @property (nonatomic, strong) SA_DiceExpression *rightOperand;
 
+// Expressions of type SA_DiceExpressionTerm_ROLL_COMMAND.
 @property SA_DiceExpressionRollCommand rollCommand;
 @property (nonatomic, strong) SA_DiceExpression *dieCount;
 @property (nonatomic, strong) SA_DiceExpression *dieSize;
 @property SA_DiceExpressionDieType dieType;
 
+// Expressions of type SA_DiceExpressionTerm_ROLL_MODIFIER.
 @property SA_DiceExpressionRollModifier rollModifier;
 
+// Expressions of type SA_DiceExpressionTerm_VALUE.
 @property (nonatomic, strong) NSNumber *value;
+
+/*===================================================
+ The following properties pertain to all expressions.
+ */
+
+@property SA_DiceExpressionError errorBitMask;
 
 @property (copy, nonatomic) NSString *inputString;
 @property (copy, nonatomic) NSAttributedString *attributedInputString;
 
+/*=========================================================================
+ The following properties pertain to evaluated expressions only.
+ (They have a nil value for expressions which have not yet been evaluated.)
+ */
+
+// Evaluated expressions (of any type).
 @property (nonatomic, strong) NSNumber *result;
 
+// Evaluated expressions of type SA_DiceExpressionTerm_ROLL_COMMAND.
 @property (nonatomic, strong) NSArray <NSNumber *> *rolls;
+
+/****************************/
+#pragma mark - Public methods
+/****************************/
+
++(instancetype) expressionByJoiningExpression:(SA_DiceExpression *)leftHandExpression
+								 toExpression:(SA_DiceExpression *)rightHandExpression
+								 withOperator:(SA_DiceExpressionOperator)operator;
 
 @end

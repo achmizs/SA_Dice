@@ -96,6 +96,8 @@
  
  NOTE 2: Legacy mode does not support whitespace within roll strings.
  
+ TODO: Document exploding dice, Fudge dice, and ‘k’ and ‘l’ operators.
+ 
  =====================
  ==== MODERN mode ====
  =====================
@@ -151,9 +153,5 @@ typedef NS_ENUM(NSUInteger, SA_DiceParserBehavior) {
 /****************************/
 
 -(SA_DiceExpression *) expressionForString:(NSString *)dieRollString;
-
--(SA_DiceExpression *) expressionByJoiningExpression:(SA_DiceExpression *)leftHandExpression
-										toExpression:(SA_DiceExpression *)rightHandExpression
-										withOperator:(SA_DiceExpressionOperator)operator;
 
 @end
